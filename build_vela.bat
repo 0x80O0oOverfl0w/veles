@@ -1,5 +1,1 @@
-@echo off
-call "E:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat" amd64
-cd /d E:\src\vveles
-cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=D:\Qt\Qt5.12.2\5.12.2\msvc2017_64
-cmake --build build
+ "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\MSBuild\Current\Bin\MSBuild.exe" "E:\src\v\veles\build\veles-build-x64-Debug\main_exe.vcxproj" /p:Configuration=Debug /t:Build 2>&1 | Select-Object -Last 20

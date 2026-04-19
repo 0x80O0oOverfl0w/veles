@@ -73,12 +73,12 @@ class ISampler {
    * May cause re-sampling, invalidates all pointers previously returned by
    * data() method.
    */
-  void setRange(size_t start, size_t end);
+  void setRange(uint64_t start, uint64_t end);
 
   /**
    * Get the range of bytes from data used as a base for sampling.
    */
-  std::pair<size_t, size_t> getRange();
+  std::pair<uint64_t, uint64_t> getRange();
 
   /**
    * Request sampler to return the sample of a given size.
@@ -94,7 +94,7 @@ class ISampler {
    * May cause re-sampling, invalidates all pointers previously returned by
    * data() method.
    */
-  void setSampleSize(size_t size);
+  void setSampleSize(uint64_t size);
 
   /**
    * Take new sample from underlying file.
@@ -108,7 +108,7 @@ class ISampler {
    * with setSampleSize(). User should always call this method to get the size
    * of the sample (no assumptions should be made).
    */
-  size_t getSampleSize();
+  uint64_t getSampleSize();
 
   /**
    * Get the index in file corresponding to nth byte in sample.
@@ -121,7 +121,7 @@ class ISampler {
    * - getFileOffset(getSampleSize() - 1) the last address.
    * - getFileOffset(getSampleSize()) the last address + 1.
    */
-  size_t getFileOffset(size_t index);
+  uint64_t getFileOffset(uint64_t index);
 
   /**
    * Get the index in sample corresponding to given address in file.
@@ -133,12 +133,12 @@ class ISampler {
    * - getSampleOffset(getRange().first) is always 0
    * - getSampleOffset(getRange().second - 1) is equal to getSampleSize() - 1
    */
-  size_t getSampleOffset(size_t index);
+  uint64_t getSampleOffset(uint64_t index);
 
   /**
    * Return n-th byte from the sample.
    */
-  char operator[](size_t index);
+  char operator[](uint64_t index);
 
   /**
    * Return whole sample as a simple array. The size of the array is
@@ -240,7 +240,7 @@ class ISampler {
    * state (ex. when asynchronously resyncing after setRange).
    */
   struct SamplerConfig {
-    size_t start, end, sample_size;
+    uint64_t start, end, sample_size;
   };
 
   /**
@@ -251,7 +251,7 @@ class ISampler {
    * This does not do any locking, which doesn't matter if sc != nullptr and
    * may be pretty bad otherwise.
    */
-  size_t getDataSize(SamplerConfig* sc = nullptr) const;
+  uint64_t getDataSize(SamplerConfig* sc = nullptr) const;
 
   /**
    * Get n-th byte of input data.
@@ -260,19 +260,19 @@ class ISampler {
    * If sc is provided it uses the range represented by sc instead of this
    * stored by sampler.
    */
-  char getDataByte(size_t index, SamplerConfig* sc = nullptr) const;
+  char getDataByte(uint64_t index, SamplerConfig* sc = nullptr) const;
 
   /**
    * Return the size of sample requested by user (with setSampleSize).
    */
-  size_t getRequestedSampleSize(SamplerConfig* sc = nullptr) const;
+  uint64_t getRequestedSampleSize(SamplerConfig* sc = nullptr) const;
 
   /**
    * Return real size of the sample. This method must be overridden by any
    * implementation, that may return sample of different size than
    * getRequestedSampleSize().
    */
-  virtual size_t getRealSampleSize() const;
+  virtual uint64_t getRealSampleSize() const;
 
   /**
    * Return the input data as simple array. Size of array is getDataSize().
@@ -287,7 +287,7 @@ class ISampler {
   /**
    * Get n-th byte of sample.
    */
-  virtual char getSampleByte(size_t index) const = 0;
+  virtual char getSampleByte(uint64_t index) const = 0;
 
   /**
    * Get whole sample as simple array. The size of the array must be the
@@ -300,12 +300,12 @@ class ISampler {
   /**
    * Implementation of getFileOffset public method.
    */
-  virtual size_t getFileOffsetImpl(size_t index) const = 0;
+  virtual uint64_t getFileOffsetImpl(uint64_t index) const = 0;
 
   /**
    * Implementation of getSampleOffset public method.
    */
-  virtual size_t getSampleOffsetImpl(size_t index) const = 0;
+  virtual uint64_t getSampleOffsetImpl(uint64_t index) const = 0;
 
   /**
    * Prepare resampled data.
@@ -348,7 +348,7 @@ class ISampler {
   void resampleAsync(int target_version, SamplerConfig* sc);
 
   const QByteArray& data_;
-  size_t start_, end_, sample_size_;
+  uint64_t start_, end_, sample_size_;
   bool allow_async_;
 
   SamplerMutex sampler_mutex_;

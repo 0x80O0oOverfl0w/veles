@@ -48,20 +48,20 @@ class VisualizationPanel : public ui::IconAwareView {
       QWidget* parent = nullptr);
   ~VisualizationPanel() override;
 
-  void setData(const QByteArray& data);
-  void setRange(size_t start, size_t end);
+  void setData(const QByteArray& data, uint64_t originalFileSize = 0);
+  void setRange(uint64_t start, uint64_t end);
   bool eventFilter(QObject* watched, QEvent* event) override;
 
  public slots:
   void visibilityChanged(bool visibility);
 
- private slots:
+private slots:
   void setSamplingMethod(const QString& name);
-  void setSampleSize(size_t size);
+  void setSampleSize(uint64_t size);
   void showDigramVisualization();
   void showTrigramVisualization();
   void showLayeredDigramVisualization();
-  void minimapSelectionChanged(size_t start, size_t end);
+  void minimapSelectionChanged(uint64_t start, uint64_t end);
   void showMoreOptions();
 
  private:
@@ -77,8 +77,8 @@ class VisualizationPanel : public ui::IconAwareView {
   static util::ISampler* getSampler(ESampler type, const QByteArray& data,
                                     qint64 sample_size);
   VisualizationWidget* getVisualization(EVisualization type,
-                                        QWidget* parent = nullptr);
-  static QString prepareAddressString(size_t start, size_t end);
+                                          QWidget* parent = nullptr);
+  static QString prepareAddressString(uint64_t start, uint64_t end, uint64_t originalFileSize = 0);
 
   void setVisualization(EVisualization type);
   void refreshVisualization();
@@ -89,7 +89,7 @@ class VisualizationPanel : public ui::IconAwareView {
   QByteArray data_;
   ESampler sampler_type_;
   EVisualization visualization_type_;
-  size_t sample_size_;
+  uint64_t sample_size_;
   util::ISampler *sampler_, *minimap_sampler_;
   MinimapPanel* minimap_;
   VisualizationWidget* visualization_;

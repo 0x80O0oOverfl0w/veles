@@ -38,7 +38,7 @@ UniformSampler::UniformSampler(const QByteArray& data)
 
 UniformSampler::~UniformSampler() { delete[] buffer_; }
 
-void UniformSampler::setWindowSize(size_t size) {
+void UniformSampler::setWindowSize(uint64_t size) {
   auto lc = waitAndLock();
   window_size_ = size;
   use_default_window_size_ = size == 0;
@@ -52,26 +52,26 @@ void UniformSampler::setWindowSize(size_t size) {
 UniformSampler::UniformSampler(const UniformSampler& other)
     : ISampler(other), window_size_(other.window_size_), buffer_(nullptr) {}
 
-char UniformSampler::getSampleByte(size_t index) const {
+char UniformSampler::getSampleByte(uint64_t index) const {
   if (buffer_ != nullptr) {
     return buffer_[index];
   }
-  size_t base_index = windows_[index / window_size_];
+  uint64_t base_index = windows_[index / window_size_];
   return getDataByte(base_index + (index % window_size_));
 }
 
 const char* UniformSampler::getData() const { return buffer_; }
 
-size_t UniformSampler::getRealSampleSize() const {
+uint64_t UniformSampler::getRealSampleSize() const {
   return window_size_ * windows_count_;
 }
 
-size_t UniformSampler::getFileOffsetImpl(size_t index) const {
-  size_t base_index = windows_[index / window_size_];
+uint64_t UniformSampler::getFileOffsetImpl(uint64_t index) const {
+  uint64_t base_index = windows_[index / window_size_];
   return base_index + (index % window_size_);
 }
 
-size_t UniformSampler::getSampleOffsetImpl(size_t address) const {
+uint64_t UniformSampler::getSampleOffsetImpl(uint64_t address) const {
   // we want the last window less or equal to address (or first window if
   // no such window exists)
   if (address < windows_[0]) {
@@ -82,20 +82,20 @@ size_t UniformSampler::getSampleOffsetImpl(size_t address) const {
   if (previous_window != windows_.begin()) {
     --previous_window;
   }
-  size_t base_index = static_cast<size_t>(
+  uint64_t base_index = static_cast<uint64_t>(
       std::distance(windows_.begin(), previous_window) * window_size_);
   return base_index + std::min(window_size_ - 1, address - (*previous_window));
 }
 
 ISampler::ResampleData* UniformSampler::prepareResample(SamplerConfig* sc) {
-  size_t size = getRequestedSampleSize(sc);
-  size_t window_size = window_size_;
+  uint64_t size = getRequestedSampleSize(sc);
+  uint64_t window_size = window_size_;
   if (use_default_window_size_ || window_size_ == 0) {
-    window_size = static_cast<size_t>(floor(sqrt(size)));
+    window_size = static_cast<uint64_t>(floor(sqrt(static_cast<double>(size))));
   }
-  size_t windows_count = size / window_size;
+  uint64_t windows_count = size / window_size;
   size = window_size * windows_count;
-  std::vector<size_t> windows(windows_count);
+  std::vector<uint64_t> windows(windows_count);
 
   // Algorithm:
   // First let's mark windows_count_ as m, window_size_ as k and
@@ -112,14 +112,14 @@ ISampler::ResampleData* UniformSampler::prepareResample(SamplerConfig* sc) {
   //   n - m*k + (m-1)*k = n - k
   //   which is exactly what we want because the piece length is k.
   // - For each i the distance d_{i+1}-d_i >= k.
-  size_t max_index = getDataSize(sc) - windows_count * window_size;
+  uint64_t max_index = getDataSize(sc) - windows_count * window_size;
   std::default_random_engine generator;
-  std::uniform_int_distribution<size_t> distribution(0, max_index);
-  for (size_t i = 0; i < windows_count; ++i) {
+  std::uniform_int_distribution<uint64_t> distribution(0, max_index);
+  for (uint64_t i = 0; i < windows_count; ++i) {
     windows[i] = distribution(generator);
   }
   std::sort(windows.begin(), windows.end());
-  for (size_t i = 0; i < windows_count; ++i) {
+  for (uint64_t i = 0; i < windows_count; ++i) {
     windows[i] += i * window_size;
   }
 
@@ -127,8 +127,8 @@ ISampler::ResampleData* UniformSampler::prepareResample(SamplerConfig* sc) {
   // than later calculate values)
   const char* raw_data = getRawData(sc);
   auto* tmp_buffer = new char[size];
-  for (size_t i = 0; i < size; ++i) {
-    size_t base_index = windows[i / window_size];
+  for (uint64_t i = 0; i < size; ++i) {
+    uint64_t base_index = windows[i / window_size];
     tmp_buffer[i] = raw_data[base_index + (i % window_size)];
   }
 

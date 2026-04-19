@@ -16,10 +16,12 @@
  */
 #include "ui/mainwindowwithdetachabledockwidgets.h"
 
+#include <algorithm>
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QLayout>
 #include <QTabBar>
+#include <limits>
 
 #include "ui/filters/activatedockeventfilter.h"
 #include "ui/nodewidget.h"
@@ -735,14 +737,35 @@ void MainWindowWithDetachableDockWidgets::createVisualization(
 
   auto* panel = new visualization::VisualizationPanel(this, data_model);
 
-  panel->setData(
-      QByteArray(reinterpret_cast<const char*>(data_model->binData().rawData()),
-                 static_cast<int>(data_model->binData().size())));
+  const quint64 kMaxVisualizationPoints = 1024 * 1024;
+  
+  quint64 dataSize = data_model->binData().size();
+  QByteArray vizData;
+  
+  if (dataSize <= static_cast<quint64>(std::numeric_limits<int>::max())) {
+    vizData = QByteArray(reinterpret_cast<const char*>(data_model->binData().rawData()),
+                     static_cast<int>(dataSize));
+    panel->setData(vizData, 0);
+  } else {
+    const uint8_t* rawData = data_model->binData().rawData();
+    quint64 stride = std::max<quint64>(1, dataSize / kMaxVisualizationPoints);
+    vizData.reserve(static_cast<int>(std::min(dataSize / stride + 1, kMaxVisualizationPoints)));
+    
+    qCritical() << "createVisualization: sampling large file" << dataSize 
+               << ", stride:" << stride << ", first bytes:";
+    
+    for (quint64 i = 0; i < dataSize; i += stride) {
+      vizData.append(static_cast<char>(rawData[i]));
+    }
+    
+    vizData.truncate(std::min(vizData.size(), static_cast<int>(kMaxVisualizationPoints)));
+    
+    qCritical() << "createVisualization: sample complete, points:" << vizData.size()
+               << ", first 10 bytes: " << vizData.left(10).toHex().constData();
+    panel->setData(vizData, dataSize);
+  }
+  
   panel->setAttribute(Qt::WA_DeleteOnClose);
-
-  // FIXME: main_window_ needs to be updated when docks are moved around,
-  // then we can use this behaviour without any weird effects
-  // auto sibling = DockWidget::getParentDockWidget(this);
 
   auto dock_widget = addTab(panel, data_model->path().join(" : "), nullptr);
   connect(dock_widget, &DockWidget::visibilityChanged, panel,

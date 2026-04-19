@@ -16,6 +16,7 @@
  */
 #include "client/localdbifshim.h"
 
+#include <algorithm>
 #include <QCoreApplication>
 #include <QDebug>
 #include <QFileInfo>
@@ -318,12 +319,59 @@ void LocalDbifShim::deliverMethodReply(dbif::MethodResultPromise* promise,
 }
 
 void LocalDbifShim::deliverMethodError(dbif::MethodResultPromise* promise,
-                                    dbif::PError error) {
+                                     dbif::PError error) {
   QMetaObject::invokeMethod(
       promise,
       "gotError",
       Qt::QueuedConnection,
       Q_ARG(veles::dbif::PError, error));
+}
+
+QByteArray LocalDbifShim::getDenseChunk(uint64_t offset, uint64_t chunkSize) {
+  if (!isMapped_ || mappedData_ == nullptr) {
+    return QByteArray();
+  }
+  
+  uint64_t clampedSize = std::min(chunkSize, fileSize_);
+  if (offset >= fileSize_) {
+    return QByteArray();
+  }
+  if (offset + clampedSize > fileSize_) {
+    clampedSize = fileSize_ - offset;
+  }
+  
+  int safeSize = static_cast<int>(clampedSize);
+  return QByteArray::fromRawData(
+      reinterpret_cast<const char*>(mappedData_ + offset), safeSize);
+}
+
+QByteArray LocalDbifShim::getSparseSample(uint64_t startOffset, uint64_t endOffset,
+                                       uint64_t maxSampleSize) {
+  if (!isMapped_ || mappedData_ == nullptr) {
+    return QByteArray();
+  }
+  
+  if (maxSampleSize == 0) {
+    maxSampleSize = 1024 * 1024;
+  }
+  
+  uint64_t rangeSize = (endOffset > startOffset) ? (endOffset - startOffset) : 0;
+  if (rangeSize == 0) {
+    return QByteArray();
+  }
+  
+  uint64_t stride = std::max<uint64_t>(1, rangeSize / maxSampleSize);
+  
+  QByteArray sample;
+  sample.reserve(static_cast<int>(std::min(maxSampleSize, rangeSize / stride + 1)));
+  
+  for (uint64_t offset = startOffset; offset < endOffset; offset += stride) {
+    if (offset < fileSize_) {
+      sample.append(static_cast<char>(mappedData_[offset]));
+    }
+  }
+  
+  return sample;
 }
 
 }  // namespace client

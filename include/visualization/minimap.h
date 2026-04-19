@@ -44,16 +44,16 @@ class VisualizationMinimap : public QOpenGLWidget,
   ~VisualizationMinimap() override;
 
   void setSampler(util::ISampler* sampler);
-  void setRange(size_t start, size_t end, bool reset_selection = true);
-  QPair<size_t, size_t> getSelectedRange();
-  void setSelectedRange(size_t start_address, size_t end_address);
+  void setRange(uint64_t start, uint64_t end, bool reset_selection = true);
+  QPair<uint64_t, uint64_t> getSelectedRange();
+  void setSelectedRange(uint64_t start_address, uint64_t end_address);
   void refresh(bool has_context = false);
 
   void setMinimapColor(MinimapColor color);
   void setMinimapMode(MinimapMode mode);
 
  signals:
-  void selectionChanged(size_t start, size_t end);
+  void selectionChanged(uint64_t start, uint64_t end);
 
  protected:
   void mouseMoveEvent(QMouseEvent* event) override;
@@ -87,27 +87,27 @@ class VisualizationMinimap : public QOpenGLWidget,
   void centerSelectionOnCoord(float coord);
   float normaliseLinePosition(float line);
 
-  size_t lineToOffset(float line_position);
-  float offsetToLine(size_t offset);
+uint64_t lineToOffset(float line_position);
+  float offsetToLine(uint64_t offset);
 
   static float* calculateAverageValueTexture(const uint8_t* sample,
-                                             size_t sample_size,
+                                             uint64_t sample_size,
                                              size_t texture_size,
                                              double point_size);
   static float* calculateEntropyTexture(const uint8_t* sample,
-                                        size_t sample_size, size_t texture_size,
-                                        double point_size);
+                                    uint64_t sample_size, size_t texture_size,
+                                    double point_size);
 
   static float* calculateEntropyTexturePerPixel(const uint8_t* sample,
-                                                size_t sample_size,
+                                                uint64_t sample_size,
                                                 size_t texture_size,
                                                 double point_size);
   static float* calculateEntropyTextureSlidingWindow(const uint8_t* sample,
-                                                     size_t sample_size,
+                                                     uint64_t sample_size,
                                                      size_t texture_size,
                                                      double point_size);
   static float* calculateEntropyTextureSingleWindow(const uint8_t* sample,
-                                                    size_t sample_size,
+                                                    uint64_t sample_size,
                                                     size_t texture_size,
                                                     double point_size);
   static float calculateEntropyValue(const uint64_t* bytes_counts,
@@ -133,13 +133,13 @@ class VisualizationMinimap : public QOpenGLWidget,
   bool gl_initialized_ = false;
   util::ISampler* sampler_ = nullptr;
 
-  size_t rows_ = 0;
-  size_t cols_ = 0;
-  size_t texture_rows_ = 0;
-  size_t texture_cols_ = 0;
-  size_t selection_start_ = 0;
-  size_t selection_end_ = 0;
-  size_t sample_size_;
+  uint64_t rows_ = 0;
+  uint64_t cols_ = 0;
+  uint64_t texture_rows_ = 0;
+  uint64_t texture_cols_ = 0;
+  uint64_t selection_start_ = 0;
+  uint64_t selection_end_ = 0;
+  uint64_t sample_size_;
   double point_size_;
 
   DragState drag_state_;

@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <memory>
 
+#include <QByteArray>
 #include <QFile>
 #include <QObject>
 #include <QString>
@@ -59,6 +60,10 @@ class LocalDbifShim : public QObject, public dbif::ObjectHandleBase {
 
   const uchar* data() const { return mappedData_; }
   uint64_t size() const { return fileSize_; }
+
+  QByteArray getDenseChunk(uint64_t offset, uint64_t chunkSize);
+  QByteArray getSparseSample(uint64_t startOffset, uint64_t endOffset, 
+                         uint64_t maxSampleSize);
 
  private:
   dbif::InfoPromise* handleInfoRequest(const dbif::PInfoRequest& req);

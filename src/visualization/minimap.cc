@@ -46,17 +46,17 @@ void VisualizationMinimap::setSampler(util::ISampler* sampler) {
   refresh();
 }
 
-QPair<size_t, size_t> VisualizationMinimap::getSelectedRange() {
+QPair<uint64_t, uint64_t> VisualizationMinimap::getSelectedRange() {
   if (empty()) {
     return qMakePair(0, 0);
   }
-  size_t start = sampler_->getFileOffset(selection_start_);
-  size_t end = sampler_->getFileOffset(selection_end_);
+  uint64_t start = sampler_->getFileOffset(selection_start_);
+  uint64_t end = sampler_->getFileOffset(selection_end_);
   return qMakePair(start, end);
 }
 
-void VisualizationMinimap::setSelectedRange(size_t start_address,
-                                            size_t end_address) {
+void VisualizationMinimap::setSelectedRange(uint64_t start_address,
+                                            uint64_t end_address) {
   selection_start_ = sampler_->getSampleOffset(start_address);
   selection_end_ = (end_address == sampler_->getRange().second)
                        ? sampler_->getSampleSize()
@@ -85,7 +85,7 @@ void VisualizationMinimap::refresh(bool has_context) {
   update();
 }
 
-void VisualizationMinimap::setRange(size_t start, size_t end,
+void VisualizationMinimap::setRange(uint64_t start, uint64_t end,
                                     bool reset_selection) {
   assert(!empty());
   sampler_->setRange(start, end);
@@ -123,7 +123,7 @@ void VisualizationMinimap::setMinimapMode(MinimapMode mode) {
 /*****************************************************************************/
 
 float* VisualizationMinimap::calculateAverageValueTexture(const uint8_t* sample,
-                                                          size_t sample_size,
+                                                          uint64_t sample_size,
                                                           size_t texture_size,
                                                           double point_size) {
   auto bigtab = new float[texture_size];
@@ -131,7 +131,7 @@ float* VisualizationMinimap::calculateAverageValueTexture(const uint8_t* sample,
   uint64_t point_sum = 0, point_count = 0;
 
   size_t index = 0;
-  for (size_t i = 0; i < sample_size; ++i) {
+  for (uint64_t i = 0; i < sample_size; ++i) {
     if (index < texture_size - 1 &&
         static_cast<double>(i) / point_size >= index + 1) {
       uint8_t result = (point_count == 0) ? 0 : point_sum / point_count;
@@ -149,7 +149,7 @@ float* VisualizationMinimap::calculateAverageValueTexture(const uint8_t* sample,
 }
 
 float* VisualizationMinimap::calculateEntropyTexture(const uint8_t* sample,
-                                                     size_t sample_size,
+                                                     uint64_t sample_size,
                                                      size_t texture_size,
                                                      double point_size) {
   if (point_size > k_minimum_entropy_window) {
@@ -161,11 +161,11 @@ float* VisualizationMinimap::calculateEntropyTexture(const uint8_t* sample,
                                                texture_size, point_size);
   }
   return calculateEntropyTextureSlidingWindow(sample, sample_size, texture_size,
-                                              point_size);
+                                               point_size);
 }
 
 float* VisualizationMinimap::calculateEntropyTexturePerPixel(
-    const uint8_t* sample, size_t sample_size, size_t texture_size,
+    const uint8_t* sample, uint64_t sample_size, size_t texture_size,
     double point_size) {
   auto bigtab = new float[texture_size];
   memset(bigtab, 0, texture_size * sizeof(*bigtab));
@@ -175,7 +175,7 @@ float* VisualizationMinimap::calculateEntropyTexturePerPixel(
 
   size_t index = 0, point_count = 0;
 
-  for (size_t i = 0; i < sample_size; ++i) {
+  for (uint64_t i = 0; i < sample_size; ++i) {
     if (index < texture_size - 1 &&
         static_cast<double>(i) / point_size >= index + 1) {
       bigtab[index] = calculateEntropyValue(counts, point_count);
@@ -192,7 +192,7 @@ float* VisualizationMinimap::calculateEntropyTexturePerPixel(
 }
 
 float* VisualizationMinimap::calculateEntropyTextureSlidingWindow(
-    const uint8_t* sample, size_t sample_size, size_t texture_size,
+    const uint8_t* sample, uint64_t sample_size, size_t texture_size,
     double point_size) {
   auto bigtab = new float[texture_size];
   memset(bigtab, 0, texture_size * sizeof(*bigtab));
@@ -200,13 +200,13 @@ float* VisualizationMinimap::calculateEntropyTextureSlidingWindow(
   auto counts = new uint64_t[256];  // assume 8-bit bytes
   memset(counts, 0, 256 * sizeof(*counts));
 
-  size_t start = 0, end = 0;
+  uint64_t start = 0, end = 0;
   while (start < sample_size) {
-    size_t mid = (start + end) / 2;
+    uint64_t mid = (start + end) / 2;
     if (mid > 0 &&
-        std::floor(mid / point_size) != std::floor((mid - 1) / point_size)) {
-      size_t point_count = end - start;
-      bigtab[static_cast<size_t>(mid / point_size)] =
+        std::floor(static_cast<double>(mid) / point_size) != std::floor(static_cast<double>(mid - 1) / point_size)) {
+      uint64_t point_count = end - start;
+      bigtab[static_cast<size_t>(static_cast<double>(mid) / point_size)] =
           calculateEntropyValue(counts, point_count);
     }
     if (end > k_minimum_entropy_window || end >= sample_size) {
@@ -221,7 +221,7 @@ float* VisualizationMinimap::calculateEntropyTextureSlidingWindow(
 }
 
 float* VisualizationMinimap::calculateEntropyTextureSingleWindow(
-    const uint8_t* sample, size_t sample_size, size_t texture_size,
+    const uint8_t* sample, uint64_t sample_size, size_t texture_size,
     double point_size) {
   auto bigtab = new float[texture_size];
   memset(bigtab, 0, texture_size * sizeof(*bigtab));
@@ -229,7 +229,7 @@ float* VisualizationMinimap::calculateEntropyTextureSingleWindow(
   auto counts = new uint64_t[256];  // assume 8-bit bytes
   memset(counts, 0, 256 * sizeof(*counts));
 
-  for (size_t i = 0; i < sample_size; ++i) {
+  for (uint64_t i = 0; i < sample_size; ++i) {
     counts[sample[i]] += 1;
   }
 
@@ -238,7 +238,7 @@ float* VisualizationMinimap::calculateEntropyTextureSingleWindow(
   float result = 0;
 
   size_t index = 0;
-  for (size_t i = 0; i < sample_size; ++i) {
+  for (uint64_t i = 0; i < sample_size; ++i) {
     if (index < texture_size - 1 &&
         static_cast<double>(i) / point_size >= index + 1) {
       result = (point_count == 0) ? 0.0f : point_sum / point_count;
@@ -630,16 +630,16 @@ void VisualizationMinimap::updateLinePositions(bool keep_selection,
     }
   }
 
-  size_t start = lineToOffset(top_line_pos_);
-  size_t end = lineToOffset(bottom_line_pos_);
+  uint64_t start = lineToOffset(top_line_pos_);
+  uint64_t end = lineToOffset(bottom_line_pos_);
 
   if (start != selection_start_ || end != selection_end_) {
     // when moving a window we want to keep constant selection size,
     // even if it doesn't exactly fit to where line is
     if (keep_size) {
-      size_t size = selection_end_ - selection_start_;
+      uint64_t size = selection_end_ - selection_start_;
       assert(size <= sample_size_);
-      size_t middle = (start + end) / 2;
+      uint64_t middle = (start + end) / 2;
 
       if (size / 2 > middle) {
         // oops, it's unsigned, we don't want to overflow it
@@ -686,27 +686,27 @@ float VisualizationMinimap::normaliseLinePosition(float line) {
   return std::max(std::min(1.0f, result), -1.0f);
 }
 
-size_t VisualizationMinimap::lineToOffset(float line_position) {
+uint64_t VisualizationMinimap::lineToOffset(float line_position) {
   assert(line_position >= -1.0);
   assert(line_position <= 1.0);
-  double row_size = 2.0 / texture_rows_;
+  double row_size = 2.0 / static_cast<double>(texture_rows_);
   double line_row = (line_position + 1) / row_size;
   if (line_row > texture_rows_) {
     return 0;
   }
-  size_t row = texture_rows_ - line_row;
+  uint64_t row = texture_rows_ - static_cast<uint64_t>(line_row);
   if (row == texture_rows_) {
     return sample_size_;
   }
-  double row_bytes = point_size_ * texture_cols_;
-  return std::min(sample_size_, static_cast<size_t>(row_bytes * row));
+  double row_bytes = point_size_ * static_cast<double>(texture_cols_);
+  return std::min(sample_size_, static_cast<uint64_t>(row_bytes * row));
 }
 
-float VisualizationMinimap::offsetToLine(size_t offset) {
-  double row_size = 2.0 / texture_rows_;
-  double row_bytes = point_size_ * texture_cols_;
+float VisualizationMinimap::offsetToLine(uint64_t offset) {
+  double row_size = 2.0 / static_cast<double>(texture_rows_);
+  double row_bytes = point_size_ * static_cast<double>(texture_cols_);
   auto position =
-      static_cast<float>(-1.0 * (((offset / row_bytes) * row_size) - 1));
+      static_cast<float>(-1.0 * (((static_cast<double>(offset) / row_bytes) * row_size) - 1));
   return std::min(1.0f, std::max(-1.0f, position));
 }
 

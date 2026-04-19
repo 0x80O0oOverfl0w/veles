@@ -87,7 +87,7 @@ VisualizationPanel::~VisualizationPanel() {
   delete minimap_sampler_;
 }
 
-void VisualizationPanel::setData(const QByteArray& data) {
+void VisualizationPanel::setData(const QByteArray& data, uint64_t originalFileSize) {
   if (data.isEmpty()) {
     qWarning() << "VisualizationPanel::setData: Empty data, skipping";
     return;
@@ -101,11 +101,13 @@ void VisualizationPanel::setData(const QByteArray& data) {
       getSampler(ESampler::UNIFORM_SAMPLER, data_, k_minimap_sample_size);
   minimap_->setSampler(minimap_sampler_);
   visualization_->setSampler(sampler_);
-  selection_label_->setText(prepareAddressString(
-      0, sampler_->getFileOffset(sampler_->getSampleSize())));
+  
+  uint64_t displaySize = (originalFileSize > 0) ? originalFileSize 
+                         : sampler_->getFileOffset(sampler_->getSampleSize());
+  selection_label_->setText(prepareAddressString(0, displaySize, originalFileSize));
 }
 
-void VisualizationPanel::setRange(size_t start, size_t end) {
+void VisualizationPanel::setRange(uint64_t start, uint64_t end) {
   sampler_->setRange(start, end);
 }
 
@@ -160,10 +162,17 @@ VisualizationWidget* VisualizationPanel::getVisualization(EVisualization type,
   return nullptr;
 }
 
-QString VisualizationPanel::prepareAddressString(size_t start, size_t end) {
-  auto label = QString("0x%1 : ").arg(start, 8, 16, QChar('0'));
+QString VisualizationPanel::prepareAddressString(uint64_t start, uint64_t end, uint64_t originalFileSize) {
+  QString label = QString("0x%1 : ").arg(start, 8, 16, QChar('0'));
   label.append(QString("0x%1 ").arg(end, 8, 16, QChar('0')));
-  label.append(QString("(%1 bytes)").arg(end - start));
+  
+  if (originalFileSize > 0 && originalFileSize > end - start) {
+    label.append(QString("(sparse: %1 bytes from %2)")
+        .arg(end - start)
+        .arg(originalFileSize));
+  } else {
+    label.append(QString("(%1 bytes)").arg(end - start));
+  }
   return label;
 }
 
@@ -187,7 +196,7 @@ void VisualizationPanel::setSamplingMethod(const QString& name) {
   sampler_type_ = new_sampler_type;
 }
 
-void VisualizationPanel::setSampleSize(size_t size) {
+void VisualizationPanel::setSampleSize(uint64_t size) {
   sample_size_ = size;
   if (sampler_type_ == ESampler::UNIFORM_SAMPLER) {
     sampler_->setSampleSize(size);
@@ -218,7 +227,7 @@ void VisualizationPanel::showLayeredDigramVisualization() {
   }
 }
 
-void VisualizationPanel::minimapSelectionChanged(size_t start, size_t end) {
+void VisualizationPanel::minimapSelectionChanged(uint64_t start, uint64_t end) {
   selection_label_->setText(prepareAddressString(start, end));
   sampler_->setRange(start, end);
 }

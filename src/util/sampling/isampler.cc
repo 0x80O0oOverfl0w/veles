@@ -35,27 +35,27 @@ ISampler::ISampler(const QByteArray& data)
       current_version_(0),
       requested_version_(0),
       next_cb_id_(0) {
-  end_ = static_cast<size_t>(data_.size());
+  end_ = static_cast<uint64_t>(data_.size());
   last_config_.start = start_;
   last_config_.end = end_;
   last_config_.sample_size = sample_size_;
 }
 
-void ISampler::setRange(size_t start, size_t end) {
+void ISampler::setRange(uint64_t start, uint64_t end) {
   assert(!empty());
-  assert(end <= static_cast<size_t>(data_.size()));
+  assert(end <= static_cast<uint64_t>(data_.size()));
   auto lc = lock();
   last_config_.start = start;
   last_config_.end = end;
   runResample(new SamplerConfig(last_config_));
 }
 
-std::pair<size_t, size_t> ISampler::getRange() {
+std::pair<uint64_t, uint64_t> ISampler::getRange() {
   auto lc = lock();
   return std::make_pair(start_, end_);
 }
 
-void ISampler::setSampleSize(size_t size) {
+void ISampler::setSampleSize(uint64_t size) {
   auto lc = lock();
   last_config_.sample_size = size;
   runResample(new SamplerConfig(last_config_));
@@ -66,7 +66,7 @@ void ISampler::resample() {
   runResample(new SamplerConfig(last_config_));
 }
 
-size_t ISampler::getSampleSize() {
+uint64_t ISampler::getSampleSize() {
   if (empty()) {
     return 0;
   }
@@ -77,10 +77,10 @@ size_t ISampler::getSampleSize() {
   return getRealSampleSize();
 }
 
-size_t ISampler::getFileOffset(size_t index) {
+uint64_t ISampler::getFileOffset(uint64_t index) {
   assert(!empty());
   auto lc = lock();
-  size_t sample_s = getRequestedSampleSize();
+  uint64_t sample_s = getRequestedSampleSize();
   assert(index <= sample_s);
   if (index == 0) {
     return start_;
@@ -97,7 +97,7 @@ size_t ISampler::getFileOffset(size_t index) {
   return start_ + getFileOffsetImpl(index);
 }
 
-size_t ISampler::getSampleOffset(size_t index) {
+uint64_t ISampler::getSampleOffset(uint64_t index) {
   assert(!empty());
   auto lc = lock();
   assert(index >= start_);
@@ -114,7 +114,7 @@ size_t ISampler::getSampleOffset(size_t index) {
   return getSampleOffsetImpl(index - start_);
 }
 
-char ISampler::operator[](size_t index) {
+char ISampler::operator[](uint64_t index) {
   assert(!empty());
   auto lc = lock();
   assert(index < getRequestedSampleSize());
@@ -204,28 +204,28 @@ ISampler::ISampler(const ISampler& other)
       requested_version_(0),
       callbacks_(other.callbacks_) {}
 
-size_t ISampler::getDataSize(SamplerConfig* sc) const {
+uint64_t ISampler::getDataSize(SamplerConfig* sc) const {
   if (sc == nullptr) {
-    return std::min<size_t>(data_.size(), end_ - start_);
+    return std::min<uint64_t>(data_.size(), end_ - start_);
   }
-  return std::min<size_t>(data_.size(), sc->end - sc->start);
+  return std::min<uint64_t>(data_.size(), sc->end - sc->start);
 }
 
-char ISampler::getDataByte(size_t index, SamplerConfig* sc) const {
-  size_t start = (sc == nullptr) ? start_ : sc->start;
+char ISampler::getDataByte(uint64_t index, SamplerConfig* sc) const {
+  uint64_t start = (sc == nullptr) ? start_ : sc->start;
   return data_[static_cast<int>(start + index)];
 }
 
-size_t ISampler::getRealSampleSize() const { return getRequestedSampleSize(); }
+uint64_t ISampler::getRealSampleSize() const { return getRequestedSampleSize(); }
 
-size_t ISampler::getRequestedSampleSize(SamplerConfig* sc) const {
-  size_t sample_size = (sc == nullptr) ? sample_size_ : sc->sample_size;
+uint64_t ISampler::getRequestedSampleSize(SamplerConfig* sc) const {
+  uint64_t sample_size = (sc == nullptr) ? sample_size_ : sc->sample_size;
   return std::min(getDataSize(sc), sample_size);
 }
 
 const char* ISampler::getRawData(SamplerConfig* sc) const {
-  size_t start = (sc == nullptr) ? start_ : sc->start;
-  return data_.data() + start;
+  uint64_t start = (sc == nullptr) ? start_ : sc->start;
+  return data_.data() + static_cast<size_t>(start);
 }
 
 /*****************************************************************************/

@@ -21,17 +21,17 @@ namespace util {
 
 FakeSampler* FakeSampler::cloneImpl() const { return new FakeSampler(*this); }
 
-size_t FakeSampler::getRealSampleSize() const { return getDataSize(); }
+uint64_t FakeSampler::getRealSampleSize() const { return getDataSize(); }
 
-char FakeSampler::getSampleByte(size_t index) const {
+char FakeSampler::getSampleByte(uint64_t index) const {
   return getDataByte(index);
 }
 
 const char* FakeSampler::getData() const { return getRawData(); }
 
-size_t FakeSampler::getFileOffsetImpl(size_t index) const { return index; }
+uint64_t FakeSampler::getFileOffsetImpl(uint64_t index) const { return index; }
 
-size_t FakeSampler::getSampleOffsetImpl(size_t address) const {
+uint64_t FakeSampler::getSampleOffsetImpl(uint64_t address) const {
   return address;
 }
 

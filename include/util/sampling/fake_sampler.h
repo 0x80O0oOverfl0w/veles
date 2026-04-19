@@ -26,13 +26,13 @@ class FakeSampler : public ISampler {
   explicit FakeSampler(const QByteArray& data) : ISampler(data) {}
 
  protected:
-  size_t getRealSampleSize() const override;
+  uint64_t getRealSampleSize() const override;
 
  private:
-  char getSampleByte(size_t index) const override;
+  char getSampleByte(uint64_t index) const override;
   const char* getData() const override;
-  size_t getFileOffsetImpl(size_t index) const override;
-  size_t getSampleOffsetImpl(size_t address) const override;
+  uint64_t getFileOffsetImpl(uint64_t index) const override;
+  uint64_t getSampleOffsetImpl(uint64_t address) const override;
   ResampleData* prepareResample(SamplerConfig* sc) override;
   void applyResample(ResampleData* rd) override;
   void cleanupResample(ResampleData* rd) override;

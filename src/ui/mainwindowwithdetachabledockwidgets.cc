@@ -20,10 +20,12 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QLayout>
+#include <QTimer>
 #include <QTabBar>
 #include <limits>
 
 #include "ui/filters/activatedockeventfilter.h"
+#include "ui/hexeditwidget.h"
 #include "ui/nodewidget.h"
 #include "visualization/panel.h"
 
@@ -711,20 +713,36 @@ bool MainWindowWithDetachableDockWidgets::splitDockWidgetImpl(
   return !main_window->tabifiedDockWidgets(first).contains(second);
 }
 
-void MainWindowWithDetachableDockWidgets::createHexEditTab(
+NodeWidget* MainWindowWithDetachableDockWidgets::createHexEditTab(
     const QSharedPointer<FileBlobModel>& data_model) {
   QSharedPointer<QItemSelectionModel> selection_model(
       new QItemSelectionModel(data_model.data()));
 
   auto* node_widget = new NodeWidget(this, data_model, selection_model);
   addTab(node_widget, data_model->path().join(" : "), nullptr);
+  return node_widget;
 }
 
 void MainWindowWithDetachableDockWidgets::createHexEditTab(
     const QString& fileName, const dbif::ObjectHandle& fileBlob) {
+  if (connection_manager_) {
+    connection_manager_->startProgress();
+  }
+
   QSharedPointer<FileBlobModel> data_model(
       new FileBlobModel(fileBlob, {QFileInfo(fileName).fileName()}));
-  createHexEditTab(data_model);
+
+  if (connection_manager_) {
+    connect(data_model.data(), &FileBlobModel::progress, connection_manager_,
+            &ConnectionManager::updateProgress);
+  }
+
+  NodeWidget* node_widget = createHexEditTab(data_model);
+
+  if (connection_manager_ && node_widget) {
+    connect(node_widget, &NodeWidget::firstDataPainted, connection_manager_,
+            &ConnectionManager::hideProgress, Qt::UniqueConnection);
+  }
 }
 
 void MainWindowWithDetachableDockWidgets::createVisualization(

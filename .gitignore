@@ -2,6 +2,7 @@
 *.swp
 *.vdb
 CMakeLists.txt.user
+.opencode/
 build/
 build_err.txt
 build_log.txt

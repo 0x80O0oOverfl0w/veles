@@ -771,6 +771,10 @@ void HexEdit::getRangeFromIndex(const QModelIndex& index, qint64* start,
 }
 
 void HexEdit::paintEvent(QPaintEvent* event) {
+  if (!first_data_painted_ && dataBytesCount_ > 0) {
+    first_data_painted_ = true;
+    emit firstDataPainted();
+  }
   QPainter painter(viewport());
   auto invalidated_rect = event->rect();
 

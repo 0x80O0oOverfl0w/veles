@@ -84,8 +84,9 @@ class HexEdit : public QAbstractScrollArea {
   bool focusNextPrevChild(bool next) override;
 
  signals:
-  void selectionChanged(qint64 start_addr, qint64 selection_size);
-  void editStateChanged(bool has_changes, bool has_undo);
+   void selectionChanged(qint64 start_addr, qint64 selection_size);
+   void editStateChanged(bool has_changes, bool has_undo);
+   void firstDataPainted();
 
  private:
   FileBlobModel* dataModel_;
@@ -160,8 +161,9 @@ class HexEdit : public QAbstractScrollArea {
 
   WindowArea current_area_;
   qint64 cursor_pos_in_byte_;
-  bool cursor_visible_;
-  bool in_insert_mode_;
+   bool cursor_visible_;
+   bool in_insert_mode_;
+   bool first_data_painted_ = false;
 
   CreateChunkDialog* createChunkDialog_;
   GoToAddressDialog* goToAddressDialog_;

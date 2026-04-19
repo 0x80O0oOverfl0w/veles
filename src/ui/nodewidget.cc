@@ -112,6 +112,9 @@ NodeWidget::NodeWidget(
   connect(node_tree_dock_, &QDockWidget::visibilityChanged, hex_edit_widget_,
           &HexEditWidget::nodeTreeVisibilityChanged);
 
+  connect(hex_edit_widget_, &HexEditWidget::firstDataPainted, this,
+          &NodeWidget::firstDataPainted);
+
 #if 0  // We do not use minimap for NodeWidget yet,
   connect(hex_edit_widget_, &HexEditWidget::showMinimap,
         minimap_dock_, &QDockWidget::setVisible);

@@ -77,7 +77,8 @@ class FileBlobModel : public QAbstractItemModel {
   static const int COLUMN_INDEX_POS = 3;
 
  signals:
-  void newBinData();
+   void progress(double percentage);
+   void newBinData();
 
  private:
   FileBlobItem* item_;

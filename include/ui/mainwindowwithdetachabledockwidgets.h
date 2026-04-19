@@ -22,15 +22,14 @@
 #include <QString>
 #include <QWidget>
 
+#include "ui/connectionmanager.h"
 #include "dockwidget.h"
 #include "ui/filters/tabbareventfilter.h"
 
 namespace veles {
 namespace ui {
 
-/*****************************************************************************/
-/* MainWindowWithDetachableDockWidgets */
-/*****************************************************************************/
+class NodeWidget;
 
 class MainWindowWithDetachableDockWidgets : public QMainWindow {
   Q_OBJECT
@@ -73,12 +72,14 @@ class MainWindowWithDetachableDockWidgets : public QMainWindow {
   static void setActiveDockWidget(DockWidget* dock_widget);
   static void focusNextPrevDock(DockWidget* dock_widget, bool next);
   std::set<MainWindowWithDetachableDockWidgets*> allMainWindows();
-  void createHexEditTab(const QString& fileName,
-                        const dbif::ObjectHandle& fileBlob);
-  void createHexEditTab(const QSharedPointer<FileBlobModel>& data_model);
-  void createVisualization(const QSharedPointer<FileBlobModel>& data_model);
+   void createHexEditTab(const QString& fileName,
+                         const dbif::ObjectHandle& fileBlob);
+   NodeWidget* createHexEditTab(const QSharedPointer<FileBlobModel>& data_model);
+   void createVisualization(const QSharedPointer<FileBlobModel>& data_model);
 
- public slots:
+   void setConnectionManager(ConnectionManager* cm) { connection_manager_ = cm; }
+
+  public slots:
   void dockLocationChanged(Qt::DockWidgetArea area);
   void tabCloseRequested(int index);
   void childAddedNotify(QObject* child);
@@ -106,8 +107,9 @@ class MainWindowWithDetachableDockWidgets : public QMainWindow {
   static int last_created_window_id_;
   static QPointer<DockWidget> active_dock_widget_;
 
-  TabBarEventFilter* tab_bar_event_filter_;
-  QRubberBand* rubber_band_;
+   TabBarEventFilter* tab_bar_event_filter_;
+   QRubberBand* rubber_band_;
+   ConnectionManager* connection_manager_ = nullptr;
 
   bool dock_widgets_with_no_title_bars_ = false;
   bool icons_on_tabs_;

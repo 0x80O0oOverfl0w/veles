@@ -46,8 +46,11 @@ class NodeWidget : public IconAwareView {
       const QSharedPointer<QItemSelectionModel>& selection_model);
   ~NodeWidget() override;
 
- public slots:
-  void loadBinDataToMinimap();
+  public slots:
+   void loadBinDataToMinimap();
+
+  signals:
+   void firstDataPainted();
 
  private:
   MainWindowWithDetachableDockWidgets* main_window_;

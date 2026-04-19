@@ -71,6 +71,9 @@ HexEditWidget::HexEditWidget(
   connect(hex_edit_, &HexEdit::editStateChanged, this,
           &HexEditWidget::editStateChanged);
 
+  connect(hex_edit_, &HexEdit::firstDataPainted, this,
+          &HexEditWidget::firstDataPainted);
+
   setupDataModelHandlers();
 
   setWindowTitle(data_model_->path().join(" : "));

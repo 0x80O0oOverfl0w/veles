@@ -137,6 +137,7 @@ FileBlobModel::FileBlobModel(const dbif::ObjectHandle& fileBlob,
 void FileBlobModel::gotBytesResponse(const veles::dbif::PInfoReply& reply) {
   if (auto bytesReply = reply.dynamicCast<dbif::BlobDataRequest::ReplyType>()) {
     binData_ = bytesReply->data;
+    emit progress(100.0);
     emit newBinData();
   }
 }
@@ -158,6 +159,7 @@ void FileBlobModel::gotDescriptionResponse(
               &FileBlobModel::gotBytesResponse);
       connect(bytesPromise_, &dbif::InfoPromise::gotError, this,
               &FileBlobModel::gotErrorResponse);
+      emit progress(30.0);
     }
   }
 }

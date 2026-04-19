@@ -22,6 +22,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QTimer>
 #include <QUrl>
 
 #include "client/dbif.h"
@@ -110,6 +111,7 @@ void VelesMainWindow::about() {
 
 void VelesMainWindow::init() {
   connection_manager_ = new ConnectionManager(this);
+  setConnectionManager(connection_manager_);
   createActions();
   createMenus();
   createLogWindow();

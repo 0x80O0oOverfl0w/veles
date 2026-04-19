@@ -20,6 +20,7 @@
 
 #include <QAction>
 #include <QFileDialog>
+#include <QProgressDialog>
 #include <QObject>
 #include <QString>
 
@@ -47,12 +48,16 @@ class ConnectionManager : public QObject {
   void localFileOpened(const QString& filePath);
   void localFileOpenFailed(const QString& error);
 
- public slots:
-  void openLocalFile(const QString& filePath);
-  void openLocalFileDialog();
+  public slots:
+   void openLocalFile(const QString& filePath);
+   void openLocalFileDialog();
+   void startProgress();
+   void updateProgress(double percentage);
+   void hideProgress();
 
- private:
-  client::LocalDbifShim* localDbifShim_ = nullptr;
+  private:
+   client::LocalDbifShim* localDbifShim_ = nullptr;
+   QProgressDialog* progress_dialog_ = nullptr;
 };
 
 }  // namespace ui

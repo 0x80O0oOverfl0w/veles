@@ -61,8 +61,9 @@ class HexEditWidget : public IconAwareView {
   QAction* removeColumnAction() const { return remove_column_act_; }
 
  signals:
-  void showNodeTree(bool show);
-  void showMinimap(bool show);
+   void showNodeTree(bool show);
+   void showMinimap(bool show);
+   void firstDataPainted();
 
  public slots:
   void nodeTreeVisibilityChanged(bool visibility);

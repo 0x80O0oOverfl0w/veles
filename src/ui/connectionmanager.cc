@@ -16,6 +16,7 @@
  */
 #include "ui/connectionmanager.h"
 
+#include <QApplication>
 #include <QFileDialog>
 #include <QTextStream>
 
@@ -24,10 +25,6 @@
 
 namespace veles {
 namespace ui {
-
-/*****************************************************************************/
-/* ConnectionManager */
-/*****************************************************************************/
 
 ConnectionManager::ConnectionManager(QWidget* parent) : QObject(parent) {
 }
@@ -38,6 +35,34 @@ ConnectionManager::~ConnectionManager() {
 
 client::LocalDbifShim* ConnectionManager::localDbifShim() {
   return localDbifShim_;
+}
+
+void ConnectionManager::startProgress() {
+  if (progress_dialog_) {
+    progress_dialog_->reset();
+  } else {
+    progress_dialog_ = new QProgressDialog(nullptr, Qt::Dialog);
+    progress_dialog_->setWindowModality(Qt::WindowModal);
+    progress_dialog_->setMinimumDuration(0);
+    progress_dialog_->setCancelButton(nullptr);
+    progress_dialog_->setLabelText(tr("Loading file..."));
+  }
+  progress_dialog_->setValue(0);
+  progress_dialog_->show();
+  QApplication::processEvents();
+}
+
+void ConnectionManager::updateProgress(double percentage) {
+  if (progress_dialog_) {
+    progress_dialog_->setValue(static_cast<int>(percentage));
+  }
+}
+
+void ConnectionManager::hideProgress() {
+  if (progress_dialog_) {
+    progress_dialog_->deleteLater();
+    progress_dialog_ = nullptr;
+  }
 }
 
 void ConnectionManager::openLocalFile(const QString& filePath) {

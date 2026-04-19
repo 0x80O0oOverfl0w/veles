@@ -34,7 +34,6 @@
 #include "ui/dialogs/optionsdialog.h"
 #include "ui/hexeditwidget.h"
 #include "ui/logwidget.h"
-#include "ui/nodetreewidget.h"
 #include "ui/nodewidget.h"
 #include "util/settings/shortcuts.h"
 #include "util/version.h"
@@ -124,8 +123,6 @@ void VelesMainWindow::init() {
                 QString(tr("Failed to open file: %1")).arg(error));
           });
 
-  connection_manager_->openLocalFileDialog();
-
   options_dialog_ = new OptionsDialog(this);
 
   bringDockWidgetToFront(log_dock_widget_);
@@ -211,16 +208,8 @@ void VelesMainWindow::createMenus() {
 }
 
 void VelesMainWindow::updateParsers(const dbif::PInfoReply& reply) {
-  parsers_list_ =
-      reply.dynamicCast<dbif::ParsersListRequest::ReplyType>()->parserIds;
-  QList<QDockWidget*> dock_widgets = findChildren<QDockWidget*>();
-  for (auto dock : dock_widgets) {
-    if (auto hex_tab = dynamic_cast<HexEditWidget*>(dock->widget())) {
-      hex_tab->setParserIds(parsers_list_);
-    } else if (auto node_tab = dynamic_cast<NodeTreeWidget*>(dock->widget())) {
-      node_tab->setParserIds(parsers_list_);
-    }
-  }
+  Q_UNUSED(reply);
+  // Parsing removed - Veles is now a hex editor + 3D visualizer only
 }
 
 void VelesMainWindow::showLog() {

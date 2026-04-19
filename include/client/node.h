@@ -27,13 +27,11 @@
 
 #include "data/bindata.h"
 #include "data/nodeid.h"
-#include "network/msgpackwrapper.h"
 
 namespace veles {
 namespace client {
 
 class NodeTree;
-class NetworkClient;
 
 using Tags = std::set<std::string>;
 
@@ -41,7 +39,21 @@ using Tags = std::set<std::string>;
 /* Node */
 /*****************************************************************************/
 
-class Node {};
+class Node {
+ public:
+  std::shared_ptr<data::NodeID> id;
+  std::shared_ptr<data::NodeID> parent;
+  std::pair<bool, uint64_t> pos_start;
+  std::pair<bool, uint64_t> pos_end;
+  Tags tags;
+  std::string name;
+  std::string comment;
+  std::string chunk_type;
+  uint64_t size;
+  uint64_t base;
+  int width;
+  std::string parser_id;
+};
 
 }  // namespace client
 }  // namespace veles

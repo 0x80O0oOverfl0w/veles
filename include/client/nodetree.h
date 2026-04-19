@@ -17,23 +17,33 @@
 
 #pragma once
 
+#include <QObject>
+
 #include "data/nodeid.h"
-#include "networkclient.h"
 #include "node.h"
 
 namespace veles {
 namespace client {
 
-using msg_ptr = std::shared_ptr<proto::MsgpackMsg>;
+class NodeTree : public QObject {
+  Q_OBJECT
 
-/*****************************************************************************/
-/* NodeTree */
-/*****************************************************************************/
-
-class NodeTree {
  public:
-  explicit NodeTree(NetworkClient* network_client);
-  void addRemoteNodeTreeRelatedMessage(const msg_ptr& msg);
+  NodeTree();
+  ~NodeTree();
+
+  std::shared_ptr<Node> rootNode() const { return rootNode_; }
+
+  void setRootNode(std::shared_ptr<Node> node) { rootNode_ = node; }
+
+ public slots:
+  void setFileSize(uint64_t size);
+
+ signals:
+  void fileSizeChanged(uint64_t size);
+
+ private:
+  std::shared_ptr<Node> rootNode_;
 };
 
 }  // namespace client

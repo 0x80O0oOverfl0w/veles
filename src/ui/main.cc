@@ -63,8 +63,6 @@ int main(int argc, char* argv[]) {
   qRegisterMetaType<
       veles::visualization::VisualizationWidget::AdditionalResampleDataPtr>(
       "AdditionalResampleDataPtr");
-  qRegisterMetaType<veles::client::NetworkClient::ConnectionStatus>(
-      "veles::client::NetworkClient::ConnectionStatus");
 
   QCommandLineParser parser;
   parser.addHelpOption();

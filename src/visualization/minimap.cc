@@ -335,6 +335,10 @@ void VisualizationMinimap::initTextures() {
   }
 
   // calculate texture size
+  if (sampler_ == nullptr || sampler_->empty()) {
+    return;
+  }
+
   texture_rows_ = std::max(static_cast<size_t>(1), rows_);
   texture_cols_ = std::max(static_cast<size_t>(1), cols_);
   sample_size_ = sampler_->getSampleSize();

@@ -2,37 +2,39 @@
  * Copyright 2017 CodiLime
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
  */
-
 #include "client/nodetree.h"
 
-#include <cstring>
-#include <functional>
-
-#include "client/networkclient.h"
-#include "client/node.h"
+#include <QDebug>
 
 namespace veles {
 namespace client {
 
-/*****************************************************************************/
-/* NodeTree */
-/*****************************************************************************/
+NodeTree::NodeTree() : QObject(), rootNode_(std::make_shared<Node>()) {
+  rootNode_->id = data::NodeID::getRootNodeId();
+  rootNode_->parent = nullptr;
+  rootNode_->pos_start = {true, 0};
+  rootNode_->pos_end = {true, 0};
+  rootNode_->size = 0;
+  rootNode_->base = 0;
+  rootNode_->width = 8;
+  rootNode_->name = "root";
+}
 
-NodeTree::NodeTree(NetworkClient* /*network_client*/) {}
+NodeTree::~NodeTree() {}
 
-void NodeTree::addRemoteNodeTreeRelatedMessage(const msg_ptr& /*msg*/) {}
+void NodeTree::setFileSize(uint64_t size) {
+  qCritical() << "veles.nodetree: setFileSize called, size:" << size;
+  if (rootNode_ != nullptr) {
+    rootNode_->size = size;
+    rootNode_->pos_end = {true, size};
+    rootNode_->base = 0;
+    rootNode_->width = 8;
+    qCritical() << "veles.nodetree: Root node updated, size:" << rootNode_->size
+                << "pos_end:" << rootNode_->pos_end.second;
+  }
+  emit fileSizeChanged(size);
+}
 
 }  // namespace client
 }  // namespace veles

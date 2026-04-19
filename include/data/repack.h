@@ -17,22 +17,49 @@
 #pragma once
 
 #include "data/bindata.h"
-#include "models.h"
 
 namespace veles {
 namespace data {
+
+// Stub definitions for local file mode (was RepackerModel from msgpack)
+enum class Endian { LITTLE, BIG };
+
+class RepackerModel {
+ public:
+  RepackerModel() {}
+  RepackerModel(Endian endian, uint64_t from_width, uint64_t to_width,
+               uint64_t high_pad, uint64_t low_pad)
+      : endian_(endian),
+        from_width_(from_width),
+        to_width_(to_width),
+        high_pad_(high_pad),
+        low_pad_(low_pad) {}
+
+  Endian endian() const { return endian_; }
+  uint64_t from_width() const { return from_width_; }
+  uint64_t to_width() const { return to_width_; }
+  uint64_t high_pad() const { return high_pad_; }
+  uint64_t low_pad() const { return low_pad_; }
+
+ private:
+  Endian endian_;
+  uint64_t from_width_;
+  uint64_t to_width_;
+  uint64_t high_pad_;
+  uint64_t low_pad_;
+};
 
 /** Represents data repacking format.  */
 class Repacker : public RepackerModel {
  public:
   explicit Repacker(Endian endian = Endian::LITTLE, uint64_t from_width = 8,
-                    uint64_t to_width = 8, uint64_t high_pad = 0,
-                    uint64_t low_pad = 0)
+                  uint64_t to_width = 8, uint64_t high_pad = 0,
+                  uint64_t low_pad = 0)
       : RepackerModel(endian, from_width, to_width, high_pad, low_pad) {}
   using RepackerModel::RepackerModel;
 
   /** Element width, including padding.  */
-  unsigned paddedWidth() const { return to_width + high_pad + low_pad; }
+  unsigned paddedWidth() const { return to_width() + high_pad() + low_pad(); }
 
   /** Returns repacking unit for given format, ie. lowest common multiple
       of source and padded destination widths in bits.  */

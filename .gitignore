@@ -3,6 +3,8 @@
 *.vdb
 CMakeLists.txt.user
 build/
+build_err.txt
+build_log.txt
 
 # Visual Studio files
 .vs
@@ -10,3 +12,5 @@ CMakeSettings.json
 *.vsp
 *.vspx
 *.psess
+.vscode/
+.claude/

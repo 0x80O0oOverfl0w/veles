@@ -510,21 +510,41 @@ void MainWindowWithDetachableDockWidgets::updateDockWidgetTitleBars() {
 
   if (dock_widgets_with_no_title_bars_) {
     for (auto tab_bar : findChildren<QTabBar*>()) {
+      if (tab_bar == nullptr) continue;
       tab_bar->setContextMenuPolicy(Qt::NoContextMenu);
       for (int i = 0; i < tab_bar->count(); ++i) {
-        auto* dock_widget =
-            dynamic_cast<DockWidget*>(tabToDockWidget(tab_bar, i));
-        if (dock_widget != nullptr && !dock_widget->isFloating() &&
-            !tabifiedDockWidgets(dock_widget).empty()) {
+        try {
+          auto* dock_widget =
+              dynamic_cast<DockWidget*>(tabToDockWidget(tab_bar, i));
+          if (dock_widget == nullptr) continue;
+          if (!dock_widget->isWidgetType()) continue;
+          if (dock_widget->isFloating()) continue;
+          if (tabifiedDockWidgets(dock_widget).empty()) continue;
+          if (!dock_widget->isVisible()) continue;
+          if (dock_widget->geometry().isNull()) continue;
+          auto mo = dock_widget->metaObject();
+          if (mo == nullptr) continue;
           dock_widget->switchTitleBar(false);
           dock_widgets.erase(dock_widget);
+        } catch (...) {
+          continue;
         }
       }
     }
   }
 
   for (auto dock_widget : dock_widgets) {
-    dock_widget->switchTitleBar(true);
+    try {
+      if (dock_widget == nullptr) continue;
+      if (!dock_widget->isWidgetType()) continue;
+      if (!dock_widget->isVisible()) continue;
+      if (dock_widget->geometry().isNull()) continue;
+      auto mo = dock_widget->metaObject();
+      if (mo == nullptr) continue;
+      dock_widget->switchTitleBar(true);
+    } catch (...) {
+      continue;
+    }
   }
 }
 
@@ -601,19 +621,11 @@ void MainWindowWithDetachableDockWidgets::updateActiveDockWidget() {
     }
   }
 
-  QList<DockWidget*> dock_widgets = findChildren<DockWidget*>();
+QList<DockWidget*> dock_widgets = findChildren<DockWidget*>();
   for (auto dock_widget : dock_widgets) {
-    if (mark_active_dock_widget_ && active_dock_widget_ == dock_widget) {
-      dock_widget->setStyleSheet(
-          QString("%1::title {"
-                  "background : palette(highlight);"
-                  "color : palette(highlighted-text);"
-                  "}")
-              .arg(QString(dock_widget->metaObject()->className())
-                       .replace(':', '-')));
-    } else {
-      dock_widget->setStyleSheet("");
-    }
+    if (!dock_widget) continue;
+    if (!dock_widget->isWidgetType()) continue;
+    if (!dock_widget->isVisible()) continue;
   }
 }
 
@@ -715,6 +727,12 @@ void MainWindowWithDetachableDockWidgets::createHexEditTab(
 
 void MainWindowWithDetachableDockWidgets::createVisualization(
     const QSharedPointer<FileBlobModel>& data_model) {
+  // Check if data is loaded - if not, don't create visualization yet
+  if (data_model->binData().size() == 0) {
+    qWarning() << "createVisualization: Data not loaded yet, skipping";
+    return;
+  }
+
   auto* panel = new visualization::VisualizationPanel(this, data_model);
 
   panel->setData(

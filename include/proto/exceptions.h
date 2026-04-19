@@ -14,27 +14,27 @@
  * limitations under the License.
  *
  */
-
 #pragma once
 
+#include <stdexcept>
 #include <string>
 
 namespace veles {
 namespace proto {
 
-class VelesException {
+class SchemaError : public std::runtime_error {
+ public:
+  explicit SchemaError(const std::string& msg) : std::runtime_error(msg) {}
+};
+
+class VelesException : public std::runtime_error {
  public:
   std::string code;
   std::string msg;
-  VelesException(const std::string& code, const std::string& msg)
-      : code(code), msg(msg) {}
-  virtual ~VelesException() {}
-};
 
-class SchemaError : public VelesException {
- public:
-  explicit SchemaError(const std::string& msg)
-      : VelesException("schema_error", msg) {}
+  VelesException() : std::runtime_error("") {}
+  VelesException(const std::string& code_, const std::string& msg_)
+      : std::runtime_error(msg_), code(code_), msg(msg_) {}
 };
 
 }  // namespace proto

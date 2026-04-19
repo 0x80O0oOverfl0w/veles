@@ -98,6 +98,7 @@ class FileBlobModel : public QAbstractItemModel {
  private slots:
   void gotDescriptionResponse(const veles::dbif::PInfoReply& reply);
   void gotBytesResponse(const veles::dbif::PInfoReply& reply);
+  void gotErrorResponse(const veles::dbif::PError& error);
 };
 
 }  // namespace ui

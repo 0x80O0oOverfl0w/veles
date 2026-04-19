@@ -18,7 +18,8 @@
 
 #include <vector>
 
-#include <msgpack.hpp>
+// NOTE: msgpack removed for local file mode
+// #include <msgpack.hpp>
 
 #include <QString>
 

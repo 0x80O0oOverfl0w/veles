@@ -18,7 +18,7 @@ endif()
 project(VELES C CXX)
 if(WIN32)
   if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    message(FATAL_ERROR "Windows 32-bit is not supported due to performance problems in msgpack")
+    message(FATAL_ERROR "Windows 32-bit is not supported")
   endif()
   cmake_minimum_required(VERSION 3.10.0)
 else()
@@ -28,16 +28,17 @@ endif()
 include("cmake/googletest.cmake")
 include("cmake/qt.cmake")
 include("cmake/zlib.cmake")
-include("cmake/msgpack.cmake")
-include("cmake/cppgen.cmake")
-include("cmake/server.cmake")
-include("cmake/openssl.cmake")
+# NOTE: msgpack and openssl commented out for local file mode
+# include("cmake/msgpack.cmake")
+# include("cmake/cppgen.cmake")
+# include("cmake/server.cmake")
+# include("cmake/openssl.cmake")
 
 # Compiler flags
-if(MINGW)
-  # MinGW is not supported because of C++14 problems (and many others).
-  message(FATAL_ERROR "MinGW is not supported, use MSVC on Windows")
-endif()
+# NOTE: MinGW check temporarily disabled for testing
+# if(MINGW)
+#   message(FATAL_ERROR "MinGW is not supported, use MSVC on Windows")
+# endif()
 set(CMAKE_CXX_STANDARD 14) # Use C++14
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -94,45 +95,43 @@ set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(TEST_DIR ${CMAKE_SOURCE_DIR}/test)
 
-include_directories(${INCLUDE_DIR})
+include_directories(${INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/veles-build-x64-Debug)
 
 qt5_add_resources(VISUALIZATION_SHADERS ${SRC_DIR}/visualization/shaders/shaders.qrc)
 
-set(MSGPACK_CPP_FWD_HEADER "${CMAKE_CURRENT_BINARY_DIR}/fwd_models.h")
-set(MSGPACK_CPP_HEADER "${CMAKE_CURRENT_BINARY_DIR}/models.h")
-set(MSGPACK_CPP_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/models.cc")
 set(PYTHON_DIR ${CMAKE_SOURCE_DIR}/python)
 
-add_custom_command(OUTPUT ${MSGPACK_CPP_HEADER} ${MSGPACK_CPP_SOURCE} ${MSGPACK_CPP_FWD_HEADER}
-    COMMAND ${PYEXE} -m veles.cpp.generate ${CMAKE_CURRENT_BINARY_DIR}
-        veles.data.repack
-        veles.proto.node
-        veles.proto.check
-        veles.proto.chunk
-        veles.proto.connection
-        veles.proto.operation
-        veles.proto.messages
-        veles.proto.msgpackwrap
-        veles.tests.schema.cpp_test_models
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/python
-    COMMENT "Generating msgpack C++ code from Python"
-    DEPENDS cpp_python_gen
-        ${PYTHON_DIR}/veles/cpp/generate.py
-        ${PYTHON_DIR}/veles/data/repack.py
-        ${PYTHON_DIR}/veles/proto/check.py
-        ${PYTHON_DIR}/veles/proto/chunk.py
-        ${PYTHON_DIR}/veles/proto/connection.py
-        ${PYTHON_DIR}/veles/proto/exceptions.py
-        ${PYTHON_DIR}/veles/proto/messages.py
-        ${PYTHON_DIR}/veles/proto/msgpackwrap.py
-        ${PYTHON_DIR}/veles/proto/operation.py
-        ${PYTHON_DIR}/veles/proto/node.py
-        ${PYTHON_DIR}/veles/schema/model.py
-        ${PYTHON_DIR}/veles/schema/enumeration.py
-        ${PYTHON_DIR}/veles/schema/fields.py
-        ${PYTHON_DIR}/veles/tests/schema/cpp_test_models.py
-    VERBATIM
-)
+# NOTE: msgpack generation commented out for local file mode
+# add_custom_command(OUTPUT ${MSGPACK_CPP_HEADER} ${MSGPACK_CPP_SOURCE} 
+#     COMMAND ${PYEXE} -m veles.cpp_generate ${CMAKE_CURRENT_BINARY_DIR}
+#         veles.data.repack
+#         veles.proto.node
+#         veles.proto.check
+#         veles.proto.chunk
+#         veles.proto.connection
+#         veles.proto.operation
+#         veles.proto.messages
+#         veles.proto.msgpackwrap
+#         veles.tests.schema.cpp_test_models
+#     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/python
+#     COMMENT "Generating msgpack C++ code from Python"
+#     DEPENDS cpp_python_gen
+#         ${PYTHON_DIR}/veles/cpp_generate.py
+#         ${PYTHON_DIR}/veles/data/repack.py
+#         ${PYTHON_DIR}/veles/proto/check.py
+#         ${PYTHON_DIR}/veles/proto/chunk.py
+#         ${PYTHON_DIR}/veles/proto/connection.py
+#         ${PYTHON_DIR}/veles/proto/exceptions.py
+#         ${PYTHON_DIR}/veles/proto/messages.py
+#         ${PYTHON_DIR}/veles/proto/msgpackwrap.py
+#         ${PYTHON_DIR}/veles/proto/operation.py
+#         ${PYTHON_DIR}/veles/proto/node.py
+#         ${PYTHON_DIR}/veles/schema/model.py
+#         ${PYTHON_DIR}/veles/schema/enumeration.py
+#         ${PYTHON_DIR}/veles/schema/fields.py
+#         ${PYTHON_DIR}/veles/tests/schema/cpp_test_models.py
+#     VERBATIM
+# )
 
 file(GLOB KAITAI_HEADERS "${INCLUDE_DIR}/kaitai/*.h")
 file(GLOB KAITAI_SOURCES "${SRC_DIR}/kaitai/*.cc")
@@ -140,7 +139,7 @@ file(GLOB KAITAI_SOURCES "${SRC_DIR}/kaitai/*.cc")
 # Resources
 qt5_add_resources(RESOURCES resources/veles.qrc)
 qt5_wrap_ui(FORMS
-    ${SRC_DIR}/ui/dialogs/connectiondialog.ui
+    
     ${SRC_DIR}/ui/connectionnotificationwidget.ui
     ${SRC_DIR}/ui/dialogs/createchunkdialog.ui
     ${SRC_DIR}/ui/databaseinfo.ui
@@ -172,7 +171,8 @@ endif()
 
 add_library(veles_base
     ${INCLUDE_DIR}/client/dbif.h
-    ${INCLUDE_DIR}/client/networkclient.h
+    ${INCLUDE_DIR}/client/localdbifshim.h
+    ${INCLUDE_DIR}/client/localdbifwrapper.h
     ${INCLUDE_DIR}/client/node.h
     ${INCLUDE_DIR}/client/nodetree.h
     ${INCLUDE_DIR}/data/bindata.h
@@ -188,8 +188,7 @@ add_library(veles_base
     ${INCLUDE_DIR}/dbif/promise.h
     ${INCLUDE_DIR}/dbif/types.h
     ${INCLUDE_DIR}/dbif/universe.h
-    ${INCLUDE_DIR}/network/msgpackobject.h
-    ${INCLUDE_DIR}/network/msgpackwrapper.h
+    
     ${INCLUDE_DIR}/parser/parser.h
     ${INCLUDE_DIR}/parser/stream.h
     ${INCLUDE_DIR}/parser/unpng.h
@@ -199,7 +198,6 @@ add_library(veles_base
     ${INCLUDE_DIR}/ui/color_picker_button.h
     ${INCLUDE_DIR}/ui/connectionmanager.h
     ${INCLUDE_DIR}/ui/databaseinfo.h
-    ${INCLUDE_DIR}/ui/dialogs/connectiondialog.h
     ${INCLUDE_DIR}/ui/dialogs/createchunkdialog.h
     ${INCLUDE_DIR}/ui/dialogs/gotoaddressdialog.h
     ${INCLUDE_DIR}/ui/dialogs/optionsdialog.h
@@ -261,14 +259,14 @@ add_library(veles_base
     ${INCLUDE_DIR}/visualization/trigram.h
 
     ${SRC_DIR}/client/dbif.cc
-    ${SRC_DIR}/client/networkclient.cc
+    ${SRC_DIR}/client/localdbifshim.cc
+    ${SRC_DIR}/client/localdbifwrapper.cc
     ${SRC_DIR}/client/nodetree.cc
     ${SRC_DIR}/data/bindata.cc
     ${SRC_DIR}/data/nodeid.cc
     ${SRC_DIR}/data/repack.cc
     ${SRC_DIR}/db/universe.cc
     ${SRC_DIR}/dbif/dbif.cc
-    ${SRC_DIR}/network/msgpackobject.cc
     ${SRC_DIR}/parser/parser.cc
     ${SRC_DIR}/parser/unpng.cc
     ${SRC_DIR}/parser/unpyc.cc
@@ -276,7 +274,6 @@ add_library(veles_base
     ${SRC_DIR}/ui/color_picker_button.cc
     ${SRC_DIR}/ui/connectionmanager.cc
     ${SRC_DIR}/ui/databaseinfo.cc
-    ${SRC_DIR}/ui/dialogs/connectiondialog.cc
     ${SRC_DIR}/ui/dialogs/createchunkdialog.cc
     ${SRC_DIR}/ui/dialogs/gotoaddressdialog.cc
     ${SRC_DIR}/ui/dialogs/optionsdialog.cc
@@ -335,9 +332,6 @@ add_library(veles_base
     ${SRC_DIR}/visualization/trigram.cc
 
     ${KAITAI_HEADERS}
-    ${MSGPACK_CPP_FWD_HEADER}
-    ${MSGPACK_CPP_HEADER}
-    ${MSGPACK_CPP_SOURCE}
     ${KAITAI_SOURCES}
     ${FORMS}
 )
@@ -354,7 +348,8 @@ qt5_use_modules(veles_base Core Gui Widgets Network)
 
 target_link_libraries(main_exe veles_base Qt5::Widgets ${ZLIB_LIBRARIES} ${ADDITIONAL_LINK_LIBRARIES})
 set_target_properties(main_exe PROPERTIES OUTPUT_NAME "veles")
-add_dependencies(main_exe openssl zlib msgpack-c)
+# NOTE: msgpack-c and openssl dependencies removed for local file mode
+add_dependencies(main_exe zlib)
 
 if(GTEST_FOUND AND GMOCK_FOUND)
   include_directories(${GTEST_INCLUDE_DIRS} ${GMOCK_INCLUDE_DIRS})
@@ -364,8 +359,6 @@ if(GTEST_FOUND AND GMOCK_FOUND)
       ${TEST_DIR}/data/copybits.cc
       ${TEST_DIR}/data/nodeid.cc
       ${TEST_DIR}/data/repack.cc
-      ${TEST_DIR}/network/msgpackobject.cc
-      ${TEST_DIR}/network/model.cc
       ${TEST_DIR}/util/encoders/base64_encoder.cc
       ${TEST_DIR}/util/encoders/c_data_encoder.cc
       ${TEST_DIR}/util/encoders/c_string_encoder.cc
@@ -485,8 +478,6 @@ if(CLANG_TIDY)
   # This target is needed so dependencies are not built for each clang-tidy call.
   add_custom_target(lint_depends
       DEPENDS
-          ${MSGPACK_CPP_HEADER}
-          ${MSGPACK_EXTRACT_PATH}
           ${FORMS}
   )
 

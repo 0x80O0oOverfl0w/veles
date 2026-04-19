@@ -99,7 +99,7 @@ class StreamParser {
                              const data::FieldHighType& high_type,
                              bool include_termination = true) {
     assert(termination.size() == 1);
-    data::BinData res(repack.to_width, 0);
+    data::BinData res(repack.to_width(), 0);
     size_t num_elements = 1;
     size_t src_size = repack.repackSize(num_elements);
     size_t bytes_read = 0;

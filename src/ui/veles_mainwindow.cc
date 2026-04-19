@@ -25,6 +25,7 @@
 #include <QUrl>
 
 #include "client/dbif.h"
+#include "client/localdbifwrapper.h"
 #include "dbif/method.h"
 #include "dbif/promise.h"
 #include "dbif/types.h"
@@ -48,14 +49,14 @@ using util::settings::shortcuts::ShortcutsModel;
 /*****************************************************************************/
 
 VelesMainWindow::VelesMainWindow()
-    : database_dock_widget_(nullptr), log_dock_widget_(nullptr) {
+    : log_dock_widget_(nullptr) {
   setAcceptDrops(true);
   resize(1024, 768);
   init();
 }
 
 void VelesMainWindow::addFile(const QString& path) {
-  files_to_upload_once_connected_.push_back(path);
+  connection_manager_->openLocalFile(path);
 }
 
 /*****************************************************************************/
@@ -81,13 +82,14 @@ void VelesMainWindow::showEvent(QShowEvent* /*event*/) { emit shown(); }
 /*****************************************************************************/
 
 void VelesMainWindow::open() {
-  QString fileName = QFileDialog::getOpenFileName(this);
-  if (!fileName.isEmpty()) {
-    createFileBlob(fileName);
-  }
+  connection_manager_->openLocalFileDialog();
 }
 
 void VelesMainWindow::newFile() { createFileBlob(""); }
+
+void VelesMainWindow::openLocalFile() {
+  connection_manager_->openLocalFileDialog();
+}
 
 void VelesMainWindow::about() {
   QMessageBox::about(this, tr("About Veles"),
@@ -112,36 +114,22 @@ void VelesMainWindow::init() {
   createActions();
   createMenus();
   createLogWindow();
-  createDb();
+
+  connect(connection_manager_, &ConnectionManager::localFileOpened,
+          this, &VelesMainWindow::createDb);
+  connect(connection_manager_, &ConnectionManager::localFileOpenFailed,
+          [this](const QString& error) {
+            QMessageBox::warning(
+                nullptr, tr("File Open Error"),
+                QString(tr("Failed to open file: %1")).arg(error));
+          });
+
+  connection_manager_->openLocalFileDialog();
 
   options_dialog_ = new OptionsDialog(this);
 
-  tool_bar_ = addToolBar("Connection");
-  tool_bar_->setContextMenuPolicy(Qt::PreventContextMenu);
-
-  auto* connections_widget = new ConnectionsWidget(this);
-  tool_bar_->addWidget(connections_widget);
-  connect(connection_manager_, &ConnectionManager::connectionStatusChanged,
-          connections_widget, &ConnectionsWidget::updateConnectionStatus);
-  connect(connection_manager_, &ConnectionManager::connectionsChanged,
-          connections_widget, &ConnectionsWidget::updateConnections);
-
-  connection_notification_widget_ = new ConnectionNotificationWidget(this);
-  connect(connection_manager_, &ConnectionManager::connectionStatusChanged,
-          connection_notification_widget_,
-          &ConnectionNotificationWidget::updateConnectionStatus);
-  connect(connection_manager_, &ConnectionManager::connectionStatusChanged,
-          this, &VelesMainWindow::updateConnectionStatus, Qt::QueuedConnection);
-  tool_bar_->addWidget(connection_notification_widget_);
-
   bringDockWidgetToFront(log_dock_widget_);
   log_dock_widget_->setFocus(Qt::OtherFocusReason);
-
-  connection_manager_->connectionDialogAccepted();
-  connect(this, &VelesMainWindow::shown, connection_manager_,
-          &ConnectionManager::raiseConnectionDialog, Qt::QueuedConnection);
-
-  updateConnectionStatus(client::NetworkClient::ConnectionStatus::NotConnected);
 
   shortcuts_dialog_ = new ShortcutsDialog(this);
 }
@@ -164,12 +152,6 @@ void VelesMainWindow::createActions() {
       Qt::ApplicationShortcut);
   exit_act_->setStatusTip(tr("Exit the application"));
   connect(exit_act_, &QAction::triggered, qApp, &QApplication::closeAllWindows);
-
-  show_database_act_ = ShortcutsModel::getShortcutsModel()->createQAction(
-      util::settings::shortcuts::SHOW_DATABASE, this, Qt::ApplicationShortcut);
-  show_database_act_->setStatusTip(tr("Show database view"));
-  connect(show_database_act_, &QAction::triggered, this,
-          &VelesMainWindow::showDatabase);
 
   show_log_act_ = ShortcutsModel::getShortcutsModel()->createQAction(
       util::settings::shortcuts::SHOW_LOG, this, Qt::ApplicationShortcut);
@@ -216,14 +198,12 @@ void VelesMainWindow::createMenus() {
   file_menu_->addAction(exit_act_);
 
   view_menu_ = menuBar()->addMenu(tr("&View"));
-  view_menu_->addAction(show_database_act_);
   view_menu_->addAction(show_log_act_);
 
-  QMenu* connection_menu = menuBar()->addMenu(tr("Connection"));
-  connection_menu->addAction(connection_manager_->showConnectionDialogAction());
-  connection_menu->addAction(connection_manager_->disconnectAction());
-  connection_menu->addAction(
-      connection_manager_->killLocallyCreatedServerAction());
+  QAction* open_local_action = new QAction(tr("Open &Local File..."), this);
+  open_local_action->setStatusTip(tr("Open a local binary file"));
+  connect(open_local_action, &QAction::triggered, connection_manager_,
+          &ConnectionManager::openLocalFileDialog);
 
   help_menu_ = menuBar()->addMenu(tr("&Help"));
   help_menu_->addAction(about_act_);
@@ -243,20 +223,6 @@ void VelesMainWindow::updateParsers(const dbif::PInfoReply& reply) {
   }
 }
 
-void VelesMainWindow::showDatabase() {
-  if (database_dock_widget_ == nullptr) {
-    createDb();
-  }
-
-  database_dock_widget_->raise();
-
-  if (database_dock_widget_->window()->isMinimized()) {
-    database_dock_widget_->window()->showNormal();
-  }
-
-  database_dock_widget_->window()->raise();
-}
-
 void VelesMainWindow::showLog() {
   if (log_dock_widget_ == nullptr) {
     createLogWindow();
@@ -271,80 +237,19 @@ void VelesMainWindow::showLog() {
   log_dock_widget_->window()->raise();
 }
 
-void VelesMainWindow::updateConnectionStatus(
-    client::NetworkClient::ConnectionStatus connection_status) {
-  if (connection_status ==
-      client::NetworkClient::ConnectionStatus::NotConnected) {
-    auto main_windows = MainWindowWithDetachableDockWidgets::allMainWindows();
-    for (auto main_window : main_windows) {
-      auto docks = main_window->findChildren<DockWidget*>();
-      for (auto dock : docks) {
-        if (dock != log_dock_widget_ && dock != database_dock_widget_) {
-          dock->close();
-        }
-      }
-    }
-
-    if (database_dock_widget_ != nullptr) {
-      database_dock_widget_->widget()->setEnabled(false);
-    }
-    open_act_->setEnabled(false);
-  } else if (connection_status ==
-             client::NetworkClient::ConnectionStatus::Connected) {
-    if (database_dock_widget_ != nullptr) {
-      database_dock_widget_->widget()->setEnabled(true);
-    }
-
-    open_act_->setEnabled(true);
-
-    if (!files_to_upload_once_connected_.empty()) {
-      QTextStream out(LogWidget::output());
-      out << "Uploading files specified as command line arguments:" << endl;
-
-      for (const auto& path : files_to_upload_once_connected_) {
-        out << "    " << path << endl;
-        createFileBlob(path);
-        QApplication::processEvents();
-      }
-
-      files_to_upload_once_connected_.clear();
-    }
-  }
-}
-
 void VelesMainWindow::createDb() {
-  if (database_ == nullptr) {
-    auto nc = new client::NCWrapper(connection_manager_->networkClient(), this);
-    database_ = QSharedPointer<client::NCObjectHandle>::create(
-        nc, *data::NodeID::getRootNodeId(), dbif::ObjectType::ROOT);
+  qCritical() << "veles.mainwindow: createDb called";
+  auto localShim = connection_manager_->localDbifShim();
+  qCritical() << "  localShim:" << (localShim ? "valid" : "null");
+  if (localShim) {
+    qCritical() << "  isMapped:" << localShim->isMapped() << " size:" << localShim->size();
   }
-  auto database_info = new DatabaseInfo(database_);
-  auto* dock_widget = wrapWithDock(database_info, "Database");
-  dock_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-  auto children = findChildren<DockWidget*>();
-  if (!children.empty()) {
-    tabifyDockWidget(children.back(), dock_widget);
-  } else {
-    addDockWidget(Qt::LeftDockWidgetArea, dock_widget);
+  if (localShim && localShim->isMapped()) {
+    auto wrapper = new client::LocalDbifWrapper(localShim, this);
+    database_ = QSharedPointer<client::LocalDbifObjectHandle>::create(
+        wrapper, *data::NodeID::getRootNodeId(), dbif::ObjectType::ROOT);
+    createHexEditTab(localShim->filePath(), database_);
   }
-
-  connect(database_info, &DatabaseInfo::goFile,
-          [this](dbif::ObjectHandle fileBlob, QString fileName) {
-            createHexEditTab(fileName, fileBlob);
-          });
-
-  connect(database_info, &DatabaseInfo::newFile, [this]() { open(); });
-
-  database_info->setEnabled(
-      connection_manager_->networkClient()->connectionStatus() ==
-      client::NetworkClient::ConnectionStatus::Connected);
-
-  auto promise = database_->asyncSubInfo<dbif::ParsersListRequest>(this);
-  connect(promise, &dbif::InfoPromise::gotInfo, this,
-          &VelesMainWindow::updateParsers);
-  database_dock_widget_ = dock_widget;
-  QApplication::processEvents();
-  updateDocksAndTabs();
 }
 
 void VelesMainWindow::createFileBlob(const QString& file_name) {

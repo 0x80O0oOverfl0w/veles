@@ -18,6 +18,7 @@
 
 #include <QColor>
 #include <QFont>
+#include <QDebug>
 #include <QSize>
 
 #include "dbif/method.h"
@@ -129,6 +130,8 @@ FileBlobModel::FileBlobModel(const dbif::ObjectHandle& fileBlob,
       fileBlob_->asyncSubInfo<dbif::DescriptionRequest>(this, req);
   connect(descriptionPromise, &dbif::InfoPromise::gotInfo, this,
           &FileBlobModel::gotDescriptionResponse);
+  connect(descriptionPromise, &dbif::InfoPromise::gotError, this,
+          &FileBlobModel::gotErrorResponse);
 }
 
 void FileBlobModel::gotBytesResponse(const veles::dbif::PInfoReply& reply) {
@@ -138,16 +141,23 @@ void FileBlobModel::gotBytesResponse(const veles::dbif::PInfoReply& reply) {
   }
 }
 
+void FileBlobModel::gotErrorResponse(const veles::dbif::PError& error) {
+  qWarning("FileBlobModel: Error loading data");
+}
+
 void FileBlobModel::gotDescriptionResponse(
     const veles::dbif::PInfoReply& reply) {
   if (auto description = reply.dynamicCast<dbif::BlobDescriptionReply>()) {
     if (bytesCount_ != description->size) {
       bytesCount_ = description->size;
+      qCritical() << "veles.fileblobmodel: Got description, requesting bytes, size:" << bytesCount_;
       delete bytesPromise_;
       bytesPromise_ =
           fileBlob_->asyncSubInfo<dbif::BlobDataRequest>(this, 0, bytesCount_);
       connect(bytesPromise_, &dbif::InfoPromise::gotInfo, this,
               &FileBlobModel::gotBytesResponse);
+      connect(bytesPromise_, &dbif::InfoPromise::gotError, this,
+              &FileBlobModel::gotErrorResponse);
     }
   }
 }

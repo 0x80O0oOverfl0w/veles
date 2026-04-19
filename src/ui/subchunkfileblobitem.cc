@@ -43,8 +43,8 @@ void SubchunkFileBlobItem::gotChunkDataResponse(
       if (item.num_elements > 1) {
         comment += QString::number(item.num_elements) + " x ";
       }
-      comment += QString::number(item.repack.to_width) + "b (";
-      if (item.repack.endian == veles::data::Endian::LITTLE) {
+      comment += QString::number(item.repack.to_width()) + "b (";
+      if (item.repack.endian() == veles::data::Endian::LITTLE) {
         comment += "LE";
       } else {
         comment += "BE";

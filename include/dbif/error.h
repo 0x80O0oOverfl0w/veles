@@ -29,8 +29,9 @@ namespace dbif {
 struct Error {
   virtual ~Error() {}
 
- protected:
+ public:
   Error() {}
+  virtual const char* what() const { return ""; }
 };
 
 struct ObjectGoneError : Error {};

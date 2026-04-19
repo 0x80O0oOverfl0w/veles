@@ -88,6 +88,10 @@ VisualizationPanel::~VisualizationPanel() {
 }
 
 void VisualizationPanel::setData(const QByteArray& data) {
+  if (data.isEmpty()) {
+    qWarning() << "VisualizationPanel::setData: Empty data, skipping";
+    return;
+  }
   delete sampler_;
   delete minimap_sampler_;
   data_ = data;

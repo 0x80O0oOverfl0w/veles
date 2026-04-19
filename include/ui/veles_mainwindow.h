@@ -16,23 +16,17 @@
  */
 #pragma once
 
-#include <QDockWidget>
 #include <QDropEvent>
 #include <QIcon>
-#include <QLabel>
 #include <QMainWindow>
 #include <QMenu>
-#include <QProcess>
 #include <QString>
 #include <QStringList>
 
-#include "client/networkclient.h"
 #include "dbif/promise.h"
 #include "dbif/types.h"
 #include "ui/connectionmanager.h"
-#include "ui/dialogs/connectiondialog.h"
 #include "ui/dialogs/optionsdialog.h"
-#include "ui/dockwidget.h"
 #include "ui/mainwindowwithdetachabledockwidgets.h"
 #include "ui/shortcutssettings.h"
 
@@ -60,11 +54,9 @@ class VelesMainWindow : public MainWindowWithDetachableDockWidgets {
   void newFile();
   void open();
   void about();
+  void openLocalFile();
   void updateParsers(const dbif::PInfoReply& reply);
-  void showDatabase();
   void showLog();
-  void updateConnectionStatus(
-      client::NetworkClient::ConnectionStatus connection_status);
 
  signals:
   void shown();
@@ -90,7 +82,6 @@ class VelesMainWindow : public MainWindowWithDetachableDockWidgets {
   QAction* about_act_;
   QAction* about_qt_act_;
 
-  QAction* show_database_act_;
   QAction* show_log_act_;
 
   dbif::ObjectHandle database_;
@@ -99,15 +90,9 @@ class VelesMainWindow : public MainWindowWithDetachableDockWidgets {
 
   QStringList parsers_list_;
 
-  QPointer<DockWidget> database_dock_widget_;
   QPointer<DockWidget> log_dock_widget_;
 
   ConnectionManager* connection_manager_;
-  ConnectionNotificationWidget* connection_notification_widget_;
-
-  QToolBar* tool_bar_;
-
-  std::list<QString> files_to_upload_once_connected_;
 };
 
 }  // namespace ui

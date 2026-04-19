@@ -104,10 +104,6 @@ dbif::InfoPromise* LocalDbifWrapper::info(const dbif::PInfoRequest& req,
   if (id == *data::NodeID::getRootNodeId()) {
     if (qSharedPointerDynamicCast<dbif::DescriptionRequest>(req)) {
       return handleDescriptionRequest(id, sub);
-    } else if (qSharedPointerDynamicCast<dbif::ChildrenRequest>(req)) {
-      return handleChildrenRequest(id, sub);
-    } else if (qSharedPointerDynamicCast<dbif::ParsersListRequest>(req)) {
-      return handleParsersListRequest(sub);
     } else if (qSharedPointerDynamicCast<dbif::BlobDataRequest>(req)) {
       auto blobReq = qSharedPointerCast<dbif::BlobDataRequest>(req);
       return handleBlobDataRequest(id, blobReq->start, blobReq->end, sub);
@@ -146,9 +142,6 @@ if (localShim_ == nullptr || !localShim_->isMapped()) {
   } else if (qSharedPointerDynamicCast<dbif::SetNameRequest>(req)) {
     auto reply = QSharedPointer<dbif::NullReply>::create();
     localShim_->deliverMethodReply(promise, reply);
-  } else if (qSharedPointerDynamicCast<dbif::BlobParseRequest>(req)) {
-    auto reply = QSharedPointer<dbif::NullReply>::create();
-    localShim_->deliverMethodReply(promise, reply);
   } else {
     localShim_->deliverMethodError(promise, QSharedPointer<dbif::Error>::create());
   }
@@ -176,40 +169,6 @@ dbif::InfoPromise* LocalDbifWrapper::handleDescriptionRequest(const data::NodeID
       localShim_->size(),
       1,
       localShim_->filePath());
-
-  localShim_->deliverInfoReply(promise, reply);
-  return promise;
-}
-
-dbif::InfoPromise* LocalDbifWrapper::handleChildrenRequest(const data::NodeID& id, bool sub) {
-  Q_UNUSED(id);
-  Q_UNUSED(sub);
-
-  dbif::InfoPromise* promise = new dbif::InfoPromise();
-
-  if (localShim_ == nullptr || !localShim_->isMapped()) {
-    localShim_->deliverErrorReply(promise, QSharedPointer<dbif::Error>::create());
-    return promise;
-  }
-
-  auto reply = QSharedPointer<dbif::ChildrenReply>::create(
-      std::vector<dbif::ObjectHandle>());
-
-  localShim_->deliverInfoReply(promise, reply);
-  return promise;
-}
-
-dbif::InfoPromise* LocalDbifWrapper::handleParsersListRequest(bool sub) {
-  Q_UNUSED(sub);
-
-  dbif::InfoPromise* promise = new dbif::InfoPromise();
-
-  if (localShim_ == nullptr || !localShim_->isMapped()) {
-    localShim_->deliverErrorReply(promise, QSharedPointer<dbif::Error>::create());
-    return promise;
-  }
-
-  auto reply = QSharedPointer<dbif::ParsersListReply>::create(QStringList());
 
   localShim_->deliverInfoReply(promise, reply);
   return promise;

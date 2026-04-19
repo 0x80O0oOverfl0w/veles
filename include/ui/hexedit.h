@@ -54,18 +54,17 @@ class HexEdit : public QAbstractScrollArea {
   /** Scroll screen to make byte visible */
   void scrollToByte(qint64 bytePos, bool minimal_change = false);
   void scrollRows(qint64 num_rows);
-  FileBlobModel* dataModel() { return dataModel_; }
-  void setParserIds(const QStringList& ids);
-  void processEditEvent(QKeyEvent* event);
+   FileBlobModel* dataModel() { return dataModel_; }
+   void processEditEvent(QKeyEvent* event);
   uint64_t byteValue(qint64 pos) const;
-  void setBytesValues(qint64 pos, const data::BinData& new_data);
-  bool isInInsertMode() const { return in_insert_mode_; }
-  void setInInsertMode(bool in_insert_mode) {
-    in_insert_mode_ = in_insert_mode;
-  }
-  void saveToFile(const QString& file_name);
+   void setBytesValues(qint64 pos, const data::BinData& new_data);
+   bool isInInsertMode() const { return in_insert_mode_; }
+   void setInInsertMode(bool in_insert_mode) {
+     in_insert_mode_ = in_insert_mode;
+   }
+    void saveToFile(const QString& file_name);
 
- public slots:
+  public slots:
   void newBinData();
   void dataChanged();
   void modelSelectionChanged();
@@ -176,18 +175,15 @@ class HexEdit : public QAbstractScrollArea {
   QAction* saveChunkAction_;
   QAction* delete_selection_action_;
   QAction* saveSelectionAction_;
-  QStringList parsers_ids_;
-  QMenu menu_;
-  QMenu parsers_menu_;
-  QTimer cursor_timer_;
+   QMenu menu_;
+   QTimer cursor_timer_;
   QScopedPointer<util::encoders::HexEncoder> hexEncoder_;
   QScopedPointer<util::encoders::TextEncoder> textEncoder_;
   util::EditEngine edit_engine_;
 
   void recalculateValues();
-  void resetFontCache();
-  void initParseMenu();
-  void adjustBytesPerRowToWindowSize();
+   void resetFontCache();
+   void adjustBytesPerRowToWindowSize();
   QRect bytePosToRect(qint64 pos, bool ascii = false, qint64 char_pos = 0);
   qint64 pointToRowNum(QPoint pos);
   qint64 pointToColumnNum(QPoint pos);
@@ -227,10 +223,9 @@ class HexEdit : public QAbstractScrollArea {
   void setSelectionEnd(qint64 bytePos);
   void saveSelectionToFile(const QString& path);
   void saveChunkToFile(const QString& path);
-  void saveDataToFile(qint64 byte_offset, qint64 size, const QString& path);
-  void scrollToCurrentChunk();
-  void parse(QAction* action);
-  void resetCursor();
+   void saveDataToFile(qint64 byte_offset, qint64 size, const QString& path);
+   void scrollToCurrentChunk();
+   void resetCursor();
 
  private slots:
   void reloadSettings();

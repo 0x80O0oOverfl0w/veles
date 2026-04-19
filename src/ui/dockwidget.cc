@@ -31,7 +31,7 @@
 
 #include "ui/dockwidget_native.h"
 #include "ui/mainwindowwithdetachabledockwidgets.h"
-#include "ui/nodewidget.h"
+
 #include "util/settings/shortcuts.h"
 #include "visualization/panel.h"
 

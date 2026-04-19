@@ -26,7 +26,7 @@
 
 #include "ui/filters/activatedockeventfilter.h"
 #include "ui/hexeditwidget.h"
-#include "ui/nodewidget.h"
+
 #include "visualization/panel.h"
 
 namespace veles {
@@ -713,14 +713,14 @@ bool MainWindowWithDetachableDockWidgets::splitDockWidgetImpl(
   return !main_window->tabifiedDockWidgets(first).contains(second);
 }
 
-NodeWidget* MainWindowWithDetachableDockWidgets::createHexEditTab(
+HexEditWidget* MainWindowWithDetachableDockWidgets::createHexEditTab(
     const QSharedPointer<FileBlobModel>& data_model) {
   QSharedPointer<QItemSelectionModel> selection_model(
       new QItemSelectionModel(data_model.data()));
 
-  auto* node_widget = new NodeWidget(this, data_model, selection_model);
-  addTab(node_widget, data_model->path().join(" : "), nullptr);
-  return node_widget;
+  auto* hex_edit_widget = new HexEditWidget(this, data_model, selection_model);
+  addTab(hex_edit_widget, data_model->path().join(" : "), nullptr);
+  return hex_edit_widget;
 }
 
 void MainWindowWithDetachableDockWidgets::createHexEditTab(
@@ -737,10 +737,10 @@ void MainWindowWithDetachableDockWidgets::createHexEditTab(
             &ConnectionManager::updateProgress);
   }
 
-  NodeWidget* node_widget = createHexEditTab(data_model);
+  HexEditWidget* hex_edit_widget = createHexEditTab(data_model);
 
-  if (connection_manager_ && node_widget) {
-    connect(node_widget, &NodeWidget::firstDataPainted, connection_manager_,
+  if (connection_manager_ && hex_edit_widget) {
+    connect(hex_edit_widget, &HexEditWidget::firstDataPainted, connection_manager_,
             &ConnectionManager::hideProgress, Qt::UniqueConnection);
   }
 }

@@ -170,18 +170,14 @@ if(WIN32 AND NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 endif()
 
 add_library(veles_base
-    ${INCLUDE_DIR}/client/dbif.h
     ${INCLUDE_DIR}/client/localdbifshim.h
     ${INCLUDE_DIR}/client/localdbifwrapper.h
-    ${INCLUDE_DIR}/client/node.h
-    ${INCLUDE_DIR}/client/nodetree.h
     ${INCLUDE_DIR}/data/bindata.h
     ${INCLUDE_DIR}/data/field.h
     ${INCLUDE_DIR}/data/nodeid.h
     ${INCLUDE_DIR}/data/repack.h
     ${INCLUDE_DIR}/data/types.h
-    ${INCLUDE_DIR}/db/getter.h
-    ${INCLUDE_DIR}/db/universe.h
+
     ${INCLUDE_DIR}/dbif/error.h
     ${INCLUDE_DIR}/dbif/info.h
     ${INCLUDE_DIR}/dbif/method.h
@@ -212,8 +208,6 @@ add_library(veles_base
     ${INCLUDE_DIR}/ui/hexeditwidget.h
     ${INCLUDE_DIR}/ui/logwidget.h
     ${INCLUDE_DIR}/ui/mainwindowwithdetachabledockwidgets.h
-    ${INCLUDE_DIR}/ui/nodetreewidget.h
-    ${INCLUDE_DIR}/ui/nodewidget.h
     ${INCLUDE_DIR}/ui/rootfileblobitem.h
     ${INCLUDE_DIR}/ui/shortcutedit.h
     ${INCLUDE_DIR}/ui/shortcutssettings.h
@@ -258,14 +252,11 @@ add_library(veles_base
     ${INCLUDE_DIR}/visualization/selectrangedialog.h
     ${INCLUDE_DIR}/visualization/trigram.h
 
-    ${SRC_DIR}/client/dbif.cc
     ${SRC_DIR}/client/localdbifshim.cc
     ${SRC_DIR}/client/localdbifwrapper.cc
-    ${SRC_DIR}/client/nodetree.cc
     ${SRC_DIR}/data/bindata.cc
     ${SRC_DIR}/data/nodeid.cc
     ${SRC_DIR}/data/repack.cc
-    ${SRC_DIR}/db/universe.cc
     ${SRC_DIR}/dbif/dbif.cc
     ${SRC_DIR}/parser/parser.cc
     ${SRC_DIR}/parser/unpng.cc
@@ -289,8 +280,6 @@ add_library(veles_base
     ${SRC_DIR}/ui/logwidget.cc
     ${SRC_DIR}/ui/main.cc
     ${SRC_DIR}/ui/mainwindowwithdetachabledockwidgets.cc
-    ${SRC_DIR}/ui/nodetreewidget.cc
-    ${SRC_DIR}/ui/nodewidget.cc
     ${SRC_DIR}/ui/rootfileblobitem.cc
     ${SRC_DIR}/ui/shortcutedit.cc
     ${SRC_DIR}/ui/shortcutssettings.cc

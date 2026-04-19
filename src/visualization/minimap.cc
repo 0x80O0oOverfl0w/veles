@@ -445,9 +445,9 @@ void VisualizationMinimap::paintGL() {
                               sizeof(QVector2D));
   program_.setUniformValue("scale_factor", pos_info.scale_factor);
   program_.setUniformValue("tx", 0);
-  program_.setUniformValue("top_line_pos", (1 + (-1.0f * top_line_pos_)) / 2);
+  program_.setUniformValue("top_line_pos", static_cast<float>((1.0 + (-1.0 * top_line_pos_)) / 2.0));
   program_.setUniformValue("bottom_line_pos",
-                           (1 + (-1.0f * bottom_line_pos_)) / 2);
+                            static_cast<float>((1.0 + (-1.0 * bottom_line_pos_)) / 2.0));
   program_.setUniformValue("channel", static_cast<GLuint>(color_));
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -483,12 +483,12 @@ void VisualizationMinimap::paintGL() {
 /* Drag&drop methods */
 /*****************************************************************************/
 
-float VisualizationMinimap::clickToTextureCoord(int y) {
-  return -1 * (static_cast<float>(y) / rows_ * 2 - 1);
+double VisualizationMinimap::clickToTextureCoord(int y) {
+  return -1 * (static_cast<double>(y) / rows_ * 2 - 1);
 }
 
-void VisualizationMinimap::centerSelectionOnCoord(float coord) {
-  float window_size = top_line_pos_ - bottom_line_pos_;
+void VisualizationMinimap::centerSelectionOnCoord(double coord) {
+  double window_size = top_line_pos_ - bottom_line_pos_;
   top_line_pos_ = normaliseLinePosition(coord + window_size / 2);
   bottom_line_pos_ = top_line_pos_ - window_size;
   if (top_line_pos_ > 1) {
@@ -508,7 +508,7 @@ void VisualizationMinimap::mouseMoveEvent(QMouseEvent* event) {
   if (!event->buttons().testFlag(Qt::LeftButton)) {
     return;
   }
-  float position = clickToTextureCoord(event->y());
+  double position = clickToTextureCoord(event->y());
   switch (drag_state_) {
     case DragState::NO_DRAG:
       return;
@@ -533,10 +533,10 @@ void VisualizationMinimap::mousePressEvent(QMouseEvent* event) {
   if (event->button() != Qt::LeftButton) {
     return;
   }
-  float position = clickToTextureCoord(event->y());
+  double position = clickToTextureCoord(event->y());
   auto pos_info = calculateScaledPositions();
   // make bar hitbox slightly larger than bar itself
-  float tlp_bottom = pos_info.scaled_tlp - k_line_selection_epsilon,
+  double tlp_bottom = pos_info.scaled_tlp - k_line_selection_epsilon,
         tlp_top = pos_info.scaled_tlp + pos_info.line_width +
                   k_line_selection_epsilon,
         blp_top = pos_info.scaled_blp + k_line_selection_epsilon,
@@ -592,8 +592,8 @@ void VisualizationMinimap::wheelEvent(QWheelEvent* event) {
   if (abs_pixels > 0 && abs_pixels < rows_ / texture_rows_) {
     pixels = std::copysign(rows_ / texture_rows_, pixels);
   }
-  float position = (top_line_pos_ + bottom_line_pos_) / 2;
-  float position_delta = static_cast<float>(2 * pixels) / rows_;
+  double position = (top_line_pos_ + bottom_line_pos_) / 2;
+  double position_delta = static_cast<double>(2 * pixels) / rows_;
 
   centerSelectionOnCoord(position + position_delta);
   updateLinePositions(false, true);
@@ -604,23 +604,23 @@ void VisualizationMinimap::wheelEvent(QWheelEvent* event) {
 void VisualizationMinimap::updateLinePositions(bool keep_selection,
                                                bool keep_size) {
   assert(!empty());
-  float row_size = 2.0 / texture_rows_;
-  float minimum_distance = std::max(k_minimum_line_distance, row_size);
+  double row_size = 2.0 / texture_rows_;
+  double minimum_distance = std::max(static_cast<double>(k_minimum_line_distance), static_cast<double>(row_size));
 
   top_line_pos_ = std::max(top_line_pos_, bottom_line_pos_ + minimum_distance);
-  top_line_pos_ = std::min(top_line_pos_, 1.0f);
+  top_line_pos_ = std::min(top_line_pos_, 1.0);
 
   bottom_line_pos_ =
       std::min(bottom_line_pos_, top_line_pos_ - minimum_distance);
-  bottom_line_pos_ = std::max(bottom_line_pos_, -1.0f);
+  bottom_line_pos_ = std::max(bottom_line_pos_, -1.0);
 
   update();
 
   // this is rather heuristic, but try to avoid changing selection
   // if we can do it without getting too far out of touch with line positions
   if (keep_selection) {
-    float raw_top_position = offsetToLine(selection_start_);
-    float raw_bot_position = offsetToLine(selection_end_);
+    double raw_top_position = offsetToLine(selection_start_);
+    double raw_bot_position = offsetToLine(selection_end_);
     if (selection_end_ > selection_start_ &&
         raw_top_position + k_line_comparison_epsilon > top_line_pos_ &&
         raw_top_position - k_line_comparison_epsilon < top_line_pos_ &&
@@ -673,24 +673,25 @@ void VisualizationMinimap::updateLinePositions(bool keep_selection,
 VisualizationMinimap::ScalingInfo
 VisualizationMinimap::calculateScaledPositions() {
   VisualizationMinimap::ScalingInfo info;
-  info.line_width = (2.0 / rows_) * k_bar_height;
-  info.scale_factor = 1.0 - info.line_width;
-  info.scaled_tlp = info.scale_factor * top_line_pos_;
-  info.scaled_blp = info.scale_factor * bottom_line_pos_;
+  double row_size = 2.0 / rows_;
+  info.line_width = static_cast<float>(row_size * k_bar_height);
+  info.scale_factor = 1.0f - info.line_width;
+  info.scaled_tlp = info.scale_factor * static_cast<float>(top_line_pos_);
+  info.scaled_blp = info.scale_factor * static_cast<float>(bottom_line_pos_);
   return info;
 }
 
-float VisualizationMinimap::normaliseLinePosition(float line) {
-  float row_size = 2.0 / texture_rows_;
-  float result = row_size * std::round((line + 1.0f) / row_size) - 1;
-  return std::max(std::min(1.0f, result), -1.0f);
+double VisualizationMinimap::normaliseLinePosition(double line) {
+  double row_size = 2.0 / static_cast<double>(texture_rows_);
+  double result = row_size * std::round((line + 1.0) / row_size) - 1.0;
+  return std::max(std::min(1.0, result), -1.0);
 }
 
-uint64_t VisualizationMinimap::lineToOffset(float line_position) {
+uint64_t VisualizationMinimap::lineToOffset(double line_position) {
   assert(line_position >= -1.0);
   assert(line_position <= 1.0);
   double row_size = 2.0 / static_cast<double>(texture_rows_);
-  double line_row = (line_position + 1) / row_size;
+  double line_row = (line_position + 1.0) / row_size;
   if (line_row > texture_rows_) {
     return 0;
   }
@@ -702,12 +703,12 @@ uint64_t VisualizationMinimap::lineToOffset(float line_position) {
   return std::min(sample_size_, static_cast<uint64_t>(row_bytes * row));
 }
 
-float VisualizationMinimap::offsetToLine(uint64_t offset) {
+double VisualizationMinimap::offsetToLine(uint64_t offset) {
   double row_size = 2.0 / static_cast<double>(texture_rows_);
   double row_bytes = point_size_ * static_cast<double>(texture_cols_);
-  auto position =
-      static_cast<float>(-1.0 * (((static_cast<double>(offset) / row_bytes) * row_size) - 1));
-  return std::min(1.0f, std::max(-1.0f, position));
+  double position =
+      -1.0 * (((static_cast<double>(offset) / row_bytes) * row_size) - 1.0);
+  return std::min(1.0, std::max(-1.0, static_cast<double>(position)));
 }
 
 bool VisualizationMinimap::empty() {

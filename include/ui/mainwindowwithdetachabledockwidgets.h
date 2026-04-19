@@ -29,7 +29,7 @@
 namespace veles {
 namespace ui {
 
-class NodeWidget;
+class HexEditWidget;
 
 class MainWindowWithDetachableDockWidgets : public QMainWindow {
   Q_OBJECT
@@ -73,9 +73,9 @@ class MainWindowWithDetachableDockWidgets : public QMainWindow {
   static void focusNextPrevDock(DockWidget* dock_widget, bool next);
   std::set<MainWindowWithDetachableDockWidgets*> allMainWindows();
    void createHexEditTab(const QString& fileName,
-                         const dbif::ObjectHandle& fileBlob);
-   NodeWidget* createHexEditTab(const QSharedPointer<FileBlobModel>& data_model);
-   void createVisualization(const QSharedPointer<FileBlobModel>& data_model);
+                          const dbif::ObjectHandle& fileBlob);
+    HexEditWidget* createHexEditTab(const QSharedPointer<FileBlobModel>& data_model);
+    void createVisualization(const QSharedPointer<FileBlobModel>& data_model);
 
    void setConnectionManager(ConnectionManager* cm) { connection_manager_ = cm; }
 

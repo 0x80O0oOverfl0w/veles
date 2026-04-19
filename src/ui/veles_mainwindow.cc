@@ -25,7 +25,6 @@
 #include <QTimer>
 #include <QUrl>
 
-#include "client/dbif.h"
 #include "client/localdbifwrapper.h"
 #include "dbif/method.h"
 #include "dbif/promise.h"
@@ -35,7 +34,7 @@
 #include "ui/dialogs/optionsdialog.h"
 #include "ui/hexeditwidget.h"
 #include "ui/logwidget.h"
-#include "ui/nodewidget.h"
+
 #include "util/settings/shortcuts.h"
 #include "util/version.h"
 
@@ -207,11 +206,6 @@ void VelesMainWindow::createMenus() {
   help_menu_ = menuBar()->addMenu(tr("&Help"));
   help_menu_->addAction(about_act_);
   help_menu_->addAction(about_qt_act_);
-}
-
-void VelesMainWindow::updateParsers(const dbif::PInfoReply& reply) {
-  Q_UNUSED(reply);
-  // Parsing removed - Veles is now a hex editor + 3D visualizer only
 }
 
 void VelesMainWindow::showLog() {

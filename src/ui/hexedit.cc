@@ -116,16 +116,6 @@ void HexEdit::resizeEvent(QResizeEvent* /*event*/) {
   recalculateValues();
 }
 
-void HexEdit::initParseMenu() {
-  parsers_menu_.setTitle("Parse selection");
-  parsers_menu_.clear();
-  parsers_menu_.addAction("auto");
-  parsers_menu_.addSeparator();
-  for (const auto& id : parsers_ids_) {
-    parsers_menu_.addAction(id);
-  }
-}
-
 HexEdit::HexEdit(FileBlobModel* dataModel, QItemSelectionModel* selectionModel,
                  QWidget* parent)
     : QAbstractScrollArea(parent),
@@ -328,11 +318,6 @@ HexEdit::HexEdit(FileBlobModel* dataModel, QItemSelectionModel* selectionModel,
 
   hexEncoder_.reset(new util::encoders::HexEncoder());
   textEncoder_.reset(new util::encoders::TextEncoder());
-  initParseMenu();
-  parsers_menu_.setEnabled(false);
-  menu_.addMenu(&parsers_menu_);
-
-  connect(&parsers_menu_, &QMenu::triggered, this, &HexEdit::parse);
 
   cursor_timer_.setInterval(cursor_blink_time_);
   cursor_timer_.start();
@@ -1019,7 +1004,6 @@ void HexEdit::contextMenuEvent(QContextMenuEvent* event) {
 
   delete_selection_action_->setEnabled(selectionActive);
   saveSelectionAction_->setEnabled(selectionActive);
-  parsers_menu_.setEnabled(selectionActive);
 
   menu_.exec(event->globalPos());
 }
@@ -1441,32 +1425,6 @@ void HexEdit::saveDataToFile(qint64 byte_offset, qint64 size,
     remove_tmp_file();
     return;
   }
-}
-
-void HexEdit::setParserIds(const QStringList& ids) {
-  parsers_ids_ = ids;
-  initParseMenu();
-}
-
-void HexEdit::parse(QAction* action) {
-  QString parser_id = action->text();
-  if (parser_id == "auto") {
-    parser_id = "";
-  }
-  QModelIndex parent;
-  qint64 byte_offset = selectionStart();
-  qint64 size = selectionSize();
-
-  // try to use selected chunk
-  if (size == 0 && selectedChunk().isValid()) {
-    getRangeFromIndex(selectedChunk(), &byte_offset, &size);
-    parent = selectedChunk();
-  }
-
-  if (size == 0) {
-    return;
-  }
-  dataModel_->parse(parser_id, byte_offset, parent);
 }
 
 void HexEdit::flipCursorVisibility() {

@@ -33,7 +33,7 @@
 #include "dbif/info.h"
 #include "dbif/types.h"
 #include "dbif/universe.h"
-#include "ui/nodewidget.h"
+
 #include "ui/veles_mainwindow.h"
 #include "util/icons.h"
 #include "util/settings/hexedit.h"
@@ -82,17 +82,7 @@ HexEditWidget::HexEditWidget(
       util::settings::hexedit::columnsNumber(),
       util::settings::hexedit::resizeColumnsToWindowWidth());
 
-  connect(&parsers_menu_, &QMenu::triggered, this, &HexEditWidget::parse);
-  setParserIds(dynamic_cast<VelesMainWindow*>(
-                   MainWindowWithDetachableDockWidgets::getFirstMainWindow())
-                   ->parsersList());
-  selectionChanged(0, 0);
-}
-
-void HexEditWidget::setParserIds(const QStringList& ids) {
-  parsers_ids_ = ids;
-  initParsersMenu();
-  hex_edit_->setParserIds(ids);
+   selectionChanged(0, 0);
 }
 
 QString HexEditWidget::addressAsText(qint64 addr) {
@@ -162,16 +152,6 @@ void HexEditWidget::createActions() {
   connect(visualization_act_, &QAction::triggered, this,
           &HexEditWidget::showVisualization);
 
-  show_node_tree_act_ = ShortcutsModel::getShortcutsModel()->createQAction(
-      util::settings::shortcuts::SHOW_NODE_TREE, this,
-      QIcon(":/images/show_node_tree.png"), Qt::WidgetWithChildrenShortcut);
-  show_node_tree_act_->setToolTip(tr("Node tree"));
-  show_node_tree_act_->setEnabled(true);
-  show_node_tree_act_->setCheckable(true);
-  show_node_tree_act_->setChecked(true);
-  connect(show_node_tree_act_, &QAction::triggered, this,
-          &HexEditWidget::showNodeTree);
-
   //  Currently not implemented
   //  show_minimap_act_ =
   //  ShortcutsModel::ShortcutsModel::getShortcutsModel()->createQAction(
@@ -238,22 +218,9 @@ void HexEditWidget::createActions() {
 
 void HexEditWidget::createToolBars() {
   tools_tool_bar_ = new QToolBar(tr("Tools"));
-  addAction(show_node_tree_act_);
-  tools_tool_bar_->addAction(show_node_tree_act_);
   // Disabled until minimap does anything of value in hex-view
   // addAction(show_minimap_act_);
   // tools_tool_bar_->addAction(show_minimap_act_);
-
-  auto parser_tool_button = new QToolButton();
-  parser_tool_button->setMenu(&parsers_menu_);
-  parser_tool_button->setPopupMode(QToolButton::InstantPopup);
-  parser_tool_button->setIcon(QIcon(":/images/parse.png"));
-  parser_tool_button->setText(tr("&Parse"));
-  parser_tool_button->setToolTip(tr("Parser"));
-  parser_tool_button->setAutoRaise(true);
-  auto widget_action = new QWidgetAction(tools_tool_bar_);
-  widget_action->setDefaultWidget(parser_tool_button);
-  tools_tool_bar_->addAction(widget_action);
 
   addAction(visualization_act_);
   addAction(show_hex_edit_act_);
@@ -293,15 +260,6 @@ void HexEditWidget::createToolBars() {
   addAction(change_edit_mode_act_);
 }
 
-void HexEditWidget::initParsersMenu() {
-  parsers_menu_.clear();
-  parsers_menu_.addAction("auto");
-  parsers_menu_.addSeparator();
-  for (const auto& id : parsers_ids_) {
-    parsers_menu_.addAction(id);
-  }
-}
-
 void HexEditWidget::createSelectionInfo() {
   auto* widget_action = new QWidgetAction(this);
   auto* selection_panel = new QWidget;
@@ -338,14 +296,6 @@ void HexEditWidget::setupDataModelHandlers() {
 /*****************************************************************************/
 /* Private Slots */
 /*****************************************************************************/
-
-void HexEditWidget::parse(QAction* action) {
-  if (action->text() == "auto") {
-    data_model_->parse();
-  } else {
-    data_model_->parse(action->text());
-  }
-}
 
 void HexEditWidget::findNext() { search_dialog_->findNext(); }
 
@@ -406,14 +356,6 @@ void HexEditWidget::removeColumn() {
   }
   hex_edit_->setBytesPerRow(bytesPerRow - 1, false);
   auto_resize_checkbox_->setChecked(false);
-}
-
-void HexEditWidget::nodeTreeVisibilityChanged(bool visibility) {
-  show_node_tree_act_->setChecked(visibility);
-}
-
-void HexEditWidget::minimapVisibilityChanged(bool visibility) {
-  show_minimap_act_->setChecked(visibility);
 }
 
 }  // namespace ui

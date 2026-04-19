@@ -83,12 +83,12 @@ class VisualizationMinimap : public QOpenGLWidget,
   };
 
   ScalingInfo calculateScaledPositions();
-  float clickToTextureCoord(int y);
-  void centerSelectionOnCoord(float coord);
-  float normaliseLinePosition(float line);
+   double clickToTextureCoord(int y);
+   void centerSelectionOnCoord(double coord);
+   double normaliseLinePosition(double line);
 
-uint64_t lineToOffset(float line_position);
-  float offsetToLine(uint64_t offset);
+   uint64_t lineToOffset(double line_position);
+   double offsetToLine(uint64_t offset);
 
   static float* calculateAverageValueTexture(const uint8_t* sample,
                                              uint64_t sample_size,
@@ -143,8 +143,8 @@ uint64_t lineToOffset(float line_position);
   double point_size_;
 
   DragState drag_state_;
-  float top_line_pos_ = 1.0;
-  float bottom_line_pos_ = -1.0;
+   double top_line_pos_ = 1.0;
+   double bottom_line_pos_ = -1.0;
   MinimapColor color_ = k_default_color;
   MinimapMode mode_ = k_default_mode;
 

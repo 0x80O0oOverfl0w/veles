@@ -27,7 +27,6 @@
 
 #include "client/localdbifshim.h"
 #include "data/nodeid.h"
-#include "db/universe.h"
 #include "dbif/universe.h"
 
 namespace veles {
@@ -74,20 +73,13 @@ class LocalDbifWrapper : public QObject {
   dbif::MethodResultPromise* runMethod(const dbif::PMethodRequest& req,
                                     const data::NodeID& id);
 
-  dbif::InfoPromise* handleDescriptionRequest(const data::NodeID& id, bool sub);
-  dbif::InfoPromise* handleChildrenRequest(const data::NodeID& id, bool sub);
-  dbif::InfoPromise* handleParsersListRequest(bool sub);
-  dbif::InfoPromise* handleBlobDataRequest(const data::NodeID& id, uint64_t start,
-                                         uint64_t end, bool sub);
+   dbif::InfoPromise* handleDescriptionRequest(const data::NodeID& id, bool sub);
+   dbif::InfoPromise* handleBlobDataRequest(const data::NodeID& id, uint64_t start,
+                                          uint64_t end, bool sub);
 
-  LocalDbifShim* localShim() const { return localShim_; }
+   LocalDbifShim* localShim() const { return localShim_; }
 
- signals:
-  void parse(const dbif::ObjectHandle& blob, db::MethodRunner* runner,
-            const QString& parser_id, qint64 start = 0,
-            const dbif::ObjectHandle& parent_chunk = dbif::ObjectHandle());
-
- private:
+  private:
   LocalDbifShim* localShim_;
 };
 

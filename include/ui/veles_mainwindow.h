@@ -41,22 +41,20 @@ class VelesMainWindow : public MainWindowWithDetachableDockWidgets {
   Q_OBJECT
 
  public:
-  VelesMainWindow();
-  void addFile(const QString& path);
-  QStringList parsersList() { return parsers_list_; }
+   VelesMainWindow();
+   void addFile(const QString& path);
 
- protected:
+  protected:
   void dropEvent(QDropEvent* ev) override;
   void dragEnterEvent(QDragEnterEvent* ev) override;
   void showEvent(QShowEvent* event) override;
 
- private slots:
-  void newFile();
-  void open();
-  void about();
-  void openLocalFile();
-  void updateParsers(const dbif::PInfoReply& reply);
-  void showLog();
+  private slots:
+   void newFile();
+   void open();
+   void about();
+   void openLocalFile();
+   void showLog();
 
  signals:
   void shown();
@@ -85,12 +83,10 @@ class VelesMainWindow : public MainWindowWithDetachableDockWidgets {
   QAction* show_log_act_;
 
   dbif::ObjectHandle database_;
-  OptionsDialog* options_dialog_;
-  ShortcutsDialog* shortcuts_dialog_;
+   OptionsDialog* options_dialog_;
+   ShortcutsDialog* shortcuts_dialog_;
 
-  QStringList parsers_list_;
-
-  QPointer<DockWidget> log_dock_widget_;
+   QPointer<DockWidget> log_dock_widget_;
 
   ConnectionManager* connection_manager_;
 };

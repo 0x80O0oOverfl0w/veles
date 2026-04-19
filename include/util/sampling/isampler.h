@@ -225,9 +225,9 @@ class ISampler {
    * or asynchronously) will result in undefined behaviour.
    * Default value is false.
    */
-  void allowAsynchronousResampling(bool allow);
+   void allowAsynchronousResampling(bool allow);
 
- protected:
+  protected:
   /**
    * Derive this struct if you want to pass any data between resample and
    * update operations.
@@ -342,12 +342,12 @@ class ISampler {
    */
   virtual ISampler* cloneImpl() const = 0;
 
-  bool samplingRequired(SamplerConfig* sc = nullptr);
-  void applySamplerConfig(SamplerConfig* sc);
-  void runResample(SamplerConfig* sc);
-  void resampleAsync(int target_version, SamplerConfig* sc);
+   bool samplingRequired(SamplerConfig* sc = nullptr);
+   void applySamplerConfig(SamplerConfig* sc);
+   void runResample(SamplerConfig* sc);
+   void resampleAsync(int target_version, SamplerConfig* sc);
 
-  const QByteArray& data_;
+   const QByteArray& data_;
   uint64_t start_, end_, sample_size_;
   bool allow_async_;
 

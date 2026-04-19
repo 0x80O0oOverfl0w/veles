@@ -178,12 +178,6 @@ dbif::InfoPromise* LocalDbifShim::handleInfoRequest(const dbif::PInfoRequest& re
     handleBlobDataRequest(req, promise);
   } else if (qSharedPointerDynamicCast<dbif::DescriptionRequest>(req)) {
     handleDescriptionRequest(req, promise);
-  } else if (qSharedPointerDynamicCast<dbif::ChunkDataRequest>(req)) {
-    handleChunkDataRequest(req, promise);
-  } else if (qSharedPointerDynamicCast<dbif::ChildrenRequest>(req)) {
-    handleChildrenRequest(req, promise);
-  } else if (qSharedPointerDynamicCast<dbif::ParsersListRequest>(req)) {
-    handleParsersListRequest(req, promise);
   } else {
     auto error = QSharedPointer<dbif::Error>::create();
     deliverErrorReply(promise, error);
@@ -212,9 +206,6 @@ dbif::MethodResultPromise* LocalDbifShim::handleMethodRequest(
     auto reply = QSharedPointer<dbif::NullReply>::create();
     deliverMethodReply(promise, reply);
   } else if (qSharedPointerDynamicCast<dbif::SetNameRequest>(req)) {
-    auto reply = QSharedPointer<dbif::NullReply>::create();
-    deliverMethodReply(promise, reply);
-  } else if (qSharedPointerDynamicCast<dbif::BlobParseRequest>(req)) {
     auto reply = QSharedPointer<dbif::NullReply>::create();
     deliverMethodReply(promise, reply);
   } else {
@@ -264,29 +255,6 @@ void LocalDbifShim::handleDescriptionRequest(const dbif::PInfoRequest& req,
       fileSize_,
       1,
       file_->fileName());
-
-  deliverInfoReply(promise, reply);
-}
-
-void LocalDbifShim::handleChunkDataRequest(const dbif::PInfoRequest& req,
-                                        dbif::InfoPromise* promise) {
-  auto reply = QSharedPointer<dbif::ChunkDataReply>::create(
-      std::vector<data::ChunkDataItem>());
-
-  deliverInfoReply(promise, reply);
-}
-
-void LocalDbifShim::handleChildrenRequest(const dbif::PInfoRequest& req,
-                                          dbif::InfoPromise* promise) {
-  auto reply = QSharedPointer<dbif::ChildrenReply>::create(
-      std::vector<dbif::ObjectHandle>());
-
-  deliverInfoReply(promise, reply);
-}
-
-void LocalDbifShim::handleParsersListRequest(const dbif::PInfoRequest& req,
-                                         dbif::InfoPromise* promise) {
-  auto reply = QSharedPointer<dbif::ParsersListReply>::create(QStringList());
 
   deliverInfoReply(promise, reply);
 }

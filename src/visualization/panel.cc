@@ -269,31 +269,14 @@ void VisualizationPanel::initLayout() {
   setCentralWidget(visualization_root_);
   setDockNestingEnabled(true);
 
-  node_tree_dock_ = new QDockWidget;
-  node_tree_dock_->setWindowTitle("Node tree");
-  QSharedPointer<QItemSelectionModel> new_selection_model(
-      new QItemSelectionModel(data_model_.data()));
-  node_tree_widget_ =
-      new ui::NodeTreeWidget(main_window_, data_model_, new_selection_model);
-  node_tree_dock_->setWidget(node_tree_widget_);
-  node_tree_dock_->setContextMenuPolicy(Qt::PreventContextMenu);
-  node_tree_dock_->setAllowedAreas(Qt::LeftDockWidgetArea |
-                                   Qt::RightDockWidgetArea);
-  node_tree_dock_->hide();
-  addDockWidget(Qt::LeftDockWidgetArea, node_tree_dock_);
-
   minimap_dock_ = new QDockWidget;
   minimap_dock_->setWindowTitle("Minimap");
   minimap_dock_->setWidget(minimap_);
   minimap_dock_->setContextMenuPolicy(Qt::PreventContextMenu);
   minimap_dock_->setAllowedAreas(Qt::LeftDockWidgetArea |
                                  Qt::RightDockWidgetArea);
-  tabifyDockWidget(node_tree_dock_, minimap_dock_);
-  ui::MainWindowWithDetachableDockWidgets::splitDockWidget2(
-      this, node_tree_dock_, minimap_dock_, Qt::Horizontal);
+  addDockWidget(Qt::LeftDockWidgetArea, minimap_dock_);
 
-  //  connect(show_node_tree_act_, &QAction::toggled,
-  //      node_tree_dock_, &QDockWidget::setVisible);
   connect(show_minimap_act_, &QAction::toggled, minimap_dock_,
           &QDockWidget::setVisible);
 }

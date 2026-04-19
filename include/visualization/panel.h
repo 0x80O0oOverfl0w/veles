@@ -30,7 +30,6 @@
 #include "ui/dockwidget.h"
 #include "ui/fileblobmodel.h"
 #include "ui/mainwindowwithdetachabledockwidgets.h"
-#include "ui/nodetreewidget.h"
 #include "visualization/base.h"
 #include "visualization/minimap_panel.h"
 #include "visualization/samplingmethoddialog.h"
@@ -103,15 +102,12 @@ private slots:
   QLabel* selection_label_;
 
   QToolBar* tools_tool_bar_;
-  QAction* show_node_tree_act_;
-  QAction* show_minimap_act_;
-  QToolBar* modes_tool_bar_;
+   QAction* show_minimap_act_;
+   QToolBar* modes_tool_bar_;
 
-  QPointer<QDockWidget> node_tree_dock_;
-  QPointer<QDockWidget> minimap_dock_;
+   QPointer<QDockWidget> minimap_dock_;
 
-  ui::NodeTreeWidget* node_tree_widget_;
-  QSharedPointer<ui::FileBlobModel> data_model_;
+   QSharedPointer<ui::FileBlobModel> data_model_;
 
   SamplingMethodDialog* sampling_method_dialog_;
   ui::MainWindowWithDetachableDockWidgets* main_window_;

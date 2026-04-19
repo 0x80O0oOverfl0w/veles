@@ -6,6 +6,8 @@ CMakeLists.txt.user
 build/
 build_err.txt
 build_log.txt
+gen_random_test.py
+veles_complex_8gb.bin
 
 # Visual Studio files
 .vs

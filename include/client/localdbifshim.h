@@ -73,14 +73,7 @@ class LocalDbifShim : public QObject, public dbif::ObjectHandleBase {
                           dbif::InfoPromise* promise);
   void handleDescriptionRequest(const dbif::PInfoRequest& req,
                              dbif::InfoPromise* promise);
-  void handleChunkDataRequest(const dbif::PInfoRequest& req,
-                            dbif::InfoPromise* promise);
-  void handleChildrenRequest(const dbif::PInfoRequest& req,
-                          dbif::InfoPromise* promise);
-  void handleParsersListRequest(const dbif::PInfoRequest& req,
-                            dbif::InfoPromise* promise);
-
-  void deliverInfoReply(dbif::InfoPromise* promise, dbif::PInfoReply reply);
+   void deliverInfoReply(dbif::InfoPromise* promise, dbif::PInfoReply reply);
   void deliverErrorReply(dbif::InfoPromise* promise, dbif::PError error);
   void deliverMethodReply(dbif::MethodResultPromise* promise, dbif::PMethodReply reply);
   void deliverMethodError(dbif::MethodResultPromise* promise, dbif::PError error);
